@@ -19,19 +19,21 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .IsRequired();
 
         builder.Property(b => b.Sku)
-            .HasMaxLength(100)
+            .HasMaxLength(50)
             .IsRequired();
 
         builder.Property(b => b.Price)
-            .HasColumnType("decimal(5,2)")
+            .HasColumnType("decimal(18,2)")
             .IsRequired();
 
-        builder.Property(cs => cs.Category).IsRequired();
-
-        builder.HasMany(b => b.PriceHistories)
-            .WithOne()
-            .HasForeignKey(p => p.ProductId)
+        builder.Property(cs => cs.Category)
             .IsRequired()
-            .OnDelete(DeleteBehavior.SetNull);
+            .HasMaxLength(50);
+
+        // Indexes
+        builder.HasIndex(p => p.Category)
+            .HasDatabaseName("IX_Products_Category");
+        builder.HasIndex(p => p.Sku)
+            .IsUnique();
     }
 }
