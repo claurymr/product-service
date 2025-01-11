@@ -1,6 +1,5 @@
-
 namespace ProductService.Domain.Enums;
-public enum CategoryType
+public enum ActionType
 {
     Entry,
     Reduced,
