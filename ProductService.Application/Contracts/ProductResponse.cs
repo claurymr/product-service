@@ -1,5 +1,5 @@
-namespace ProductService.Application.Products.GetProducts;
-public record ProductQueryResponse
+namespace ProductService.Application.Contracts;
+public record ProductResponse
 {
     public Guid Id { get; set; }
     public string Name { get; init; } = string.Empty;

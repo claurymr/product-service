@@ -1,4 +1,4 @@
-using ProductService.Application.Products.GetProducts;
+using ProductService.Application.Contracts;
 using ProductService.Application.Repositories;
 using ProductService.Domain;
 
@@ -15,17 +15,17 @@ public class ProductRepository : IProductRepository
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<ProductQueryResponse>> GetProductByIdAsync(Guid id)
+    public Task<IEnumerable<ProductResponse>> GetProductByIdAsync(Guid id)
     {
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<ProductQueryResponse>> GetProductsAsync()
+    public Task<IEnumerable<ProductResponse>> GetProductsAsync()
     {
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<ProductQueryResponse>> GetProductsByCategory(string category)
+    public Task<IEnumerable<ProductResponse>> GetProductsByCategory(string category)
     {
         throw new NotImplementedException();
     }
