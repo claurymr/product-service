@@ -5,7 +5,7 @@ using ProductService.Application.Validation;
 namespace ProductService.Application.Products.CreateProducts;
 
 public class CreateProductCommandHandler
-: IRequestHandler<CreateProductCommand, Result<Guid, ValidationFailed>>
+    : IRequestHandler<CreateProductCommand, Result<Guid, ValidationFailed>>
 {
     // Declare repository private field
     // Call main ctor and initialize repository

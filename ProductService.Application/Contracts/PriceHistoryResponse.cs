@@ -1,7 +1,7 @@
 using ProductService.Application.Enums;
 
-namespace ProductService.Application.ProductPriceHistories.GetPriceHistories;
-public record PriceHistoryQueryResponse
+namespace ProductService.Application.Contracts;
+public record PriceHistoryResponse
 {
     public Guid Id { get; set; }
     public Guid ProductId { get; set; }
