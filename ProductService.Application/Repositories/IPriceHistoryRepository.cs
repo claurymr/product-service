@@ -1,7 +1,7 @@
-using ProductService.Application.ProductPriceHistories.GetPriceHistories;
+using ProductService.Application.Contracts;
 
 namespace ProductService.Application.Repositories;
 public interface IPriceHistoryRepository
 {
-    Task<IEnumerable<PriceHistoryQueryResponse>> GetPriceHistoryByProductIdAsync(Guid id);
+    Task<IEnumerable<PriceHistoryResponse>> GetPriceHistoryByProductIdAsync(Guid id);
 }
