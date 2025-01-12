@@ -1,4 +1,6 @@
 using MediatR;
+using ProductService.Application.Contracts;
+using ProductService.Application.Validation;
 
 namespace ProductService.Application.Products.UpdateProducts;
 public record UpdateProductCommand(
@@ -7,4 +9,5 @@ public record UpdateProductCommand(
     string Description,
     decimal Price,
     string Category,
-    string Sku) : IRequest<Guid>;
+    string Sku)
+    : IRequest<Result<bool, ValidationFailed>>;
