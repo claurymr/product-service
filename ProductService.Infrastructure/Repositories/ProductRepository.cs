@@ -1,10 +1,13 @@
 using ProductService.Application.Contracts;
 using ProductService.Application.Repositories;
 using ProductService.Domain;
+using ProductService.Infrastructure.Data;
 
 namespace ProductService.Infrastructure.Repositories;
-public class ProductRepository : IProductRepository
+public class ProductRepository(ProductServiceDbContext dbContext) : IProductRepository
 {
+    private readonly ProductServiceDbContext _dbContext = dbContext;
+
     public Task<Guid> CreateProductAsync(Product product)
     {
         throw new NotImplementedException();
@@ -15,7 +18,7 @@ public class ProductRepository : IProductRepository
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<ProductResponse>> GetProductByIdAsync(Guid id)
+    public Task<ProductResponse> GetProductByIdAsync(Guid id)
     {
         throw new NotImplementedException();
     }
