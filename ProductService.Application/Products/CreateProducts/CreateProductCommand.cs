@@ -1,4 +1,6 @@
 using MediatR;
+using ProductService.Application.Contracts;
+using ProductService.Application.Validation;
 
 namespace ProductService.Application.Products.CreateProducts;
 public record CreateProductCommand(
@@ -7,4 +9,4 @@ public record CreateProductCommand(
     decimal Price,
     string Category,
     string Sku)
-    : IRequest<Guid>;
+    : IRequest<Result<Guid, ValidationFailed>>;
