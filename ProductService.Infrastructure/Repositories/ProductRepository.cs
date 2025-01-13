@@ -28,12 +28,12 @@ public class ProductRepository(ProductServiceDbContext dbContext) : IProductRepo
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<ProductResponse>> GetProductsByCategory(string category)
+    public Task<IEnumerable<ProductResponse>> GetProductsByCategoryAsync(string category)
     {
         throw new NotImplementedException();
     }
 
-    public Task<Guid> UpdateProductAsync(Guid id)
+    public Task<Guid> UpdateProductAsync(Guid id, Product product)
     {
         throw new NotImplementedException();
     }

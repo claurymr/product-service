@@ -5,7 +5,7 @@ using ProductService.Application.Mappings;
 using ProductService.Application.Products.UpdateProducts;
 
 namespace ProductService.Api.Endpoints.Products;
-public class UpdateProductEndpoint(IMediator mediator) : Endpoint<UpdateProductCommand, Results<NoContent, BadRequest>>
+public class UpdateProductEndpoint(IMediator mediator) : Endpoint<UpdateProductCommand, Results<Ok, BadRequest, NotFound>>
 {
     private readonly IMediator _mediator = mediator;
 
@@ -15,16 +15,17 @@ public class UpdateProductEndpoint(IMediator mediator) : Endpoint<UpdateProductC
         AllowAnonymous(); //For now
     }
 
-    public override async Task<Results<NoContent, BadRequest>> ExecuteAsync(UpdateProductCommand req, CancellationToken ct)
+    public override async Task<Results<Ok, BadRequest, NotFound>> ExecuteAsync(UpdateProductCommand req, CancellationToken ct)
     {
         var result = await _mediator.Send(req, ct);
         var response = result.Match<IResult>(
-            _ => TypedResults.NoContent(),
-            failed => TypedResults.BadRequest(failed.MapToResponse()));
+            _ => TypedResults.Ok(),
+            failed => TypedResults.BadRequest(failed.MapToResponse()),
+            notFound => TypedResults.NotFound(notFound.MapToResponse()));
 
         return response switch
         {
-            NoContent noContent => noContent,
+            Ok ok => ok,
             BadRequest badRequest => badRequest,
             _ => throw new Exception()
         };
