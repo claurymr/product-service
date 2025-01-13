@@ -83,7 +83,7 @@ public class GetProductByIdQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowException_WhenProductNotFound()
+    public async Task Handle_ShouldReturnRecordNotFound_WhenProductNotFound()
     {
         // Arrange
         var productId = Guid.NewGuid();
