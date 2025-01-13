@@ -2,9 +2,9 @@ using AutoFixture;
 using AutoFixture.AutoMoq;
 using FluentAssertions;
 using Moq;
-using ProductService.Application.Contracts;
 using ProductService.Application.Products.GetProducts;
 using ProductService.Application.Repositories;
+using ProductService.Domain;
 using Xunit;
 
 namespace ProductService.Unit.Tests.Handlers;
@@ -25,9 +25,9 @@ public class GetAllProductsQueryHandlerTests
     public async Task Handle_ShouldReturnProductsWithConvertedPrices_WhenCurrencyIsProvided()
     {
         // Arrange
-        var productResponses = _fixture
-                                .CreateMany<ProductResponse>()
-                                .ToList();
+        var product = _fixture
+                        .CreateMany<Product>()
+                        .ToList();
         var currency = "EUR";
         var expectedExchangeRate = 0m;
 
@@ -35,7 +35,7 @@ public class GetAllProductsQueryHandlerTests
 
         _productRepositoryMock
             .Setup(repo => repo.GetProductsAsync())
-            .ReturnsAsync(productResponses);
+            .ReturnsAsync(product);
         // setup currency dependency for currency api
 
         // Act
@@ -43,10 +43,10 @@ public class GetAllProductsQueryHandlerTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().HaveSameCount(productResponses);
+        result.Should().HaveSameCount(product);
         result.Should().AllSatisfy(response =>
         {
-            var originalProduct = productResponses.First(p => p.Id == response.Id);
+            var originalProduct = product.First(p => p.Id == response.Id);
             response.Price.Should().Be(originalProduct.Price * expectedExchangeRate);
             response.Currency.Should().Be(currency);
         });
@@ -58,24 +58,24 @@ public class GetAllProductsQueryHandlerTests
     public async Task Handle_ShouldReturnProductsWithoutConversion_WhenCurrencyIsNotProvided()
     {
         // Arrange
-        var productResponses = _fixture
-                                .CreateMany<ProductResponse>()
-                                .ToList();
+        var products = _fixture
+                        .CreateMany<Product>()
+                        .ToList();
         var query = new GetAllProductsQuery();
 
         _productRepositoryMock
             .Setup(repo => repo.GetProductsAsync())
-            .ReturnsAsync(productResponses);
+            .ReturnsAsync(products);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().HaveSameCount(productResponses);
+        result.Should().HaveSameCount(products);
         result.Should().AllSatisfy(response =>
         {
-            var originalProduct = productResponses.First(p => p.Id == response.Id);
+            var originalProduct = products.First(p => p.Id == response.Id);
             response.Price.Should().Be(originalProduct.Price);
             response.Currency.Should().BeNullOrEmpty();
         });
@@ -89,7 +89,6 @@ public class GetAllProductsQueryHandlerTests
     {
         // Arrange
         var query = new GetAllProductsQuery();
-
         _productRepositoryMock
             .Setup(repo => repo.GetProductsAsync())
             .ReturnsAsync([]);
