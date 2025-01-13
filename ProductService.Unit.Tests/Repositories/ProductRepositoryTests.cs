@@ -128,7 +128,7 @@ public class ProductRepositoryTests
         var repository = new ProductRepository(_dbContextMock);
 
         // Act
-        var result = await repository.GetProductsByCategory(category);
+        var result = await repository.GetProductsByCategoryAsync(category);
 
         // Assert
         result.Should().HaveCount(3);

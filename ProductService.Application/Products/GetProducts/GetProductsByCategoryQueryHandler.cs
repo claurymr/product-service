@@ -1,8 +1,10 @@
 using MediatR;
 using ProductService.Application.Contracts;
+using ProductService.Application.Repositories;
 
 namespace ProductService.Application.Products.GetProducts;
-public class GetProductsByCategoryQueryHandler : IRequestHandler<GetProductsByCategoryQuery, IEnumerable<ProductResponse>>
+public class GetProductsByCategoryQueryHandler(IProductRepository productRepository) 
+    : IRequestHandler<GetProductsByCategoryQuery, IEnumerable<ProductResponse>>
 {
     // Declare repository private field
     // Declare httpclient private field
