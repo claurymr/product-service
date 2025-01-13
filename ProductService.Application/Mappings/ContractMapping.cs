@@ -29,4 +29,15 @@ public static class ContractMapping
             })
         };
     }
+
+    public static OperationFailureResponse MapToResponse(this RecordNotFound notFound)
+    {
+        return new OperationFailureResponse
+        {
+            Errors = notFound.Messages.Select(message => new OperationResponse
+            {
+                Message = message
+            })
+        };
+    }
 }
