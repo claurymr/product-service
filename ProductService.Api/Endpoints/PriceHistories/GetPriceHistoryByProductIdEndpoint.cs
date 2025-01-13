@@ -17,11 +17,6 @@ public class GetPriceHistoryByProductIdEndpoint(IMediator mediator) : Endpoint<G
     public override async Task HandleAsync(GetPriceHistoryByProductIdQuery req, CancellationToken ct)
     {
         var result = await _mediator.Send(req, ct);
-        if (result is null)
-        {
-            await SendNotFoundAsync(ct);
-            return;
-        }
-        await SendOkAsync(result!, ct);
+        await SendOkAsync(result is null ? [] : result!, ct);
     }
 }

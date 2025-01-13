@@ -15,7 +15,7 @@ public class GetProductByIdEndpoint(IMediator mediator) : Endpoint<GetProductByI
         AllowAnonymous(); //For now
     }
 
-    public override async Task<Results<Ok<ProductResponse>, NotFound>> HandleAsync(GetProductByIdQuery req, CancellationToken ct)
+    public override async Task<Results<Ok<ProductResponse>, NotFound>> ExecuteAsync(GetProductByIdQuery req, CancellationToken ct)
     {
         var result = await _mediator.Send(req, ct);
         var response = result.Match<IResult>(

@@ -17,11 +17,6 @@ public class GetProductsByCategoryEndpoint(IMediator mediator) : Endpoint<GetPro
     public override async Task HandleAsync(GetProductsByCategoryQuery req, CancellationToken ct)
     {
         var result = await _mediator.Send(req, ct);
-        if (result is null)
-        {
-            await SendNotFoundAsync(ct);
-            return;
-        }
-        await SendOkAsync(result!, ct);
+        await SendOkAsync(result is null ? [] : result!, ct);
     }
 }
