@@ -15,7 +15,7 @@ public class DeleteProductEndpoint(IMediator mediator) : Endpoint<DeleteProductC
         AllowAnonymous(); //For now
     }
 
-    public override async Task<Results<Ok<Guid>, NotFound>> HandleAsync(DeleteProductCommand req, CancellationToken ct)
+    public override async Task<Results<Ok<Guid>, NotFound>> ExecuteAsync(DeleteProductCommand req, CancellationToken ct)
     {
         var result = await _mediator.Send(req, ct);
         var response = result.Match<IResult>(
