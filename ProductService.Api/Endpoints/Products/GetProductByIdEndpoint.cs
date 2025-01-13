@@ -1,10 +1,11 @@
 using FastEndpoints;
 using MediatR;
+using Microsoft.AspNetCore.Http.HttpResults;
 using ProductService.Application.Contracts;
 using ProductService.Application.Products.GetProducts;
 
 namespace ProductService.Api.Endpoints.Products;
-public class GetProductByIdEndpoint(IMediator mediator) : Endpoint<GetProductByIdQuery, ProductResponse>
+public class GetProductByIdEndpoint(IMediator mediator) : Endpoint<GetProductByIdQuery, Results<Ok<ProductResponse>, NotFound>>
 {
     private readonly IMediator _mediator = mediator;
 
@@ -14,14 +15,17 @@ public class GetProductByIdEndpoint(IMediator mediator) : Endpoint<GetProductByI
         AllowAnonymous(); //For now
     }
 
-    public override async Task HandleAsync(GetProductByIdQuery req, CancellationToken ct)
+    public override async Task<Results<Ok<ProductResponse>, NotFound>> HandleAsync(GetProductByIdQuery req, CancellationToken ct)
     {
         var result = await _mediator.Send(req, ct);
-        if (result is null)
+        var response = result.Match<IResult>(
+                        productResponse => TypedResults.Ok(productResponse),
+                        notFound => TypedResults.NotFound(notFound));
+        return response switch
         {
-            await SendNotFoundAsync(ct);
-            return;
-        }
-        await SendOkAsync(result!, ct);
+            Ok<ProductResponse> success => success,
+            NotFound notFound => notFound,
+            _ => throw new Exception()
+        };
     }
 }
