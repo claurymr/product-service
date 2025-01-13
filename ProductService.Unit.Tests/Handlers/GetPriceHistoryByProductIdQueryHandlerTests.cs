@@ -2,9 +2,9 @@ using AutoFixture;
 using AutoFixture.AutoMoq;
 using FluentAssertions;
 using Moq;
-using ProductService.Application.Contracts;
 using ProductService.Application.ProductPriceHistories.GetPriceHistories;
 using ProductService.Application.Repositories;
+using ProductService.Domain;
 using Xunit;
 
 namespace ProductService.Unit.Tests.Handlers;
@@ -25,24 +25,24 @@ public class GetPriceHistoryByProductIdQueryHandlerTests
     public async Task Handle_ShouldReturnPriceHistories_WhenProductIdIsProvided()
     {
         // Arrange
-        var priceHistoryResponses = _fixture
-                                    .CreateMany<PriceHistoryResponse>()
-                                    .ToList();
+        var priceHistories = _fixture
+                                .CreateMany<PriceHistory>()
+                                .ToList();
         var productId = Guid.NewGuid();
 
         var query = new GetPriceHistoryByProductIdQuery(productId);
 
         _priceHistoryRepositoryMock
             .Setup(repo => repo.GetPriceHistoryByProductIdAsync(productId))
-            .ReturnsAsync(priceHistoryResponses);
+            .ReturnsAsync(priceHistories);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().HaveSameCount(priceHistoryResponses);
-        result.Should().BeEquivalentTo(priceHistoryResponses);
+        result.Should().HaveSameCount(priceHistories);
+        result.Should().BeEquivalentTo(priceHistories);
         _priceHistoryRepositoryMock.Verify(repo => repo.GetPriceHistoryByProductIdAsync(productId), Times.Once);
     }
 
@@ -51,7 +51,6 @@ public class GetPriceHistoryByProductIdQueryHandlerTests
     {
         // Arrange
         var productId = Guid.NewGuid();
-
         var query = new GetPriceHistoryByProductIdQuery(productId);
 
         _priceHistoryRepositoryMock

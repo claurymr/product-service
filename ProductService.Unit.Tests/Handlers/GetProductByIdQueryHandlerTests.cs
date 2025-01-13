@@ -2,11 +2,11 @@ using AutoFixture;
 using AutoFixture.AutoMoq;
 using FluentAssertions;
 using Moq;
-using ProductService.Application.Contracts;
 using ProductService.Application.Mappings;
 using ProductService.Application.Products.GetProducts;
 using ProductService.Application.Repositories;
 using ProductService.Application.Validation;
+using ProductService.Domain;
 using Xunit;
 
 namespace ProductService.Unit.Tests.Handlers;
@@ -29,7 +29,7 @@ public class GetProductByIdQueryHandlerTests
     public async Task Handle_ShouldReturnProductWithConvertedPrice_WhenCurrencyIsProvided()
     {
         // Arrange
-        var product = _fixture.Create<ProductResponse>();
+        var product = _fixture.Create<Product>();
         var currency = "EUR";
         var expectedExchangeRate = 0m;
 
@@ -60,7 +60,7 @@ public class GetProductByIdQueryHandlerTests
     public async Task Handle_ShouldReturnProductWithoutConversion_WhenCurrencyIsNotProvided()
     {
         // Arrange
-        var product = _fixture.Create<ProductResponse>();
+        var product = _fixture.Create<Product>();
         var query = new GetProductByIdQuery(product.Id);
 
         _productRepositoryMock
@@ -91,7 +91,7 @@ public class GetProductByIdQueryHandlerTests
 
         _productRepositoryMock
             .Setup(repo => repo.GetProductByIdAsync(productId))
-            .ReturnsAsync((ProductResponse)null!);
+            .ReturnsAsync(default(Product)!);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);

@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using FluentAssertions;
 using Moq;
-using ProductService.Application.Contracts;
 using ProductService.Application.Products.GetProducts;
 using ProductService.Application.Repositories;
+using ProductService.Domain;
 using Xunit;
 
 namespace ProductService.Unit.Tests.Handlers;
@@ -36,10 +32,10 @@ public class GetProductsByCategoryQueryHandlerTests
         var expectedExchangeRate = 0m;
 
         var products = _fixture
-            .Build<ProductResponse>()
-            .With(p => p.Category, category)
-            .CreateMany(5)
-            .ToList();
+                        .Build<Product>()
+                        .With(p => p.Category, category)
+                        .CreateMany(5)
+                        .ToList();
 
         var query = new GetProductsByCategoryQuery(category, currency);
 
@@ -73,10 +69,10 @@ public class GetProductsByCategoryQueryHandlerTests
         var category = "Books";
 
         var products = _fixture
-            .Build<ProductResponse>()
-            .With(p => p.Category, category)
-            .CreateMany(3)
-            .ToList();
+                        .Build<Product>()
+                        .With(p => p.Category, category)
+                        .CreateMany(3)
+                        .ToList();
 
         var query = new GetProductsByCategoryQuery(category);
 
