@@ -1,13 +1,16 @@
 using System.Text.Json;
 using AutoFixture;
 using AutoFixture.AutoMoq;
+using FastEndpoints;
 using FluentAssertions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
 using ProductService.Api.Endpoints.Products;
 using ProductService.Application.Contracts;
 using ProductService.Application.Products.GetProducts;
+using ProductService.Application.Validation;
 using Xunit;
 
 namespace ProductService.Unit.Tests.Endpoints.Products;
@@ -43,14 +46,14 @@ public class GetProductsEndpointTests
             .ReturnsAsync(products);
 
         // Act
-        await _endpoint.HandleAsync(request, CancellationToken.None);
+        var result = await _endpoint.ExecuteAsync(request, CancellationToken.None);
 
         // Assert
-        _endpoint.HttpContext.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
-
-        var responseBody = await new StreamReader(_endpoint.HttpContext.Response.Body).ReadToEndAsync();
-        var actualResponse = JsonSerializer.Deserialize<IEnumerable<ProductResponse>>(responseBody);
-        actualResponse.Should().BeEquivalentTo(products);
+        result.Should().NotBeNull();
+        result.Result.Should().BeOfType(typeof(Ok<IEnumerable<ProductResponse>>));
+        (result.Result as Ok<IEnumerable<ProductResponse>>)!.Value
+            .Should()
+            .BeEquivalentTo(products, options => options.Excluding(p => p.Price));
 
         _mediatorMock.Verify(mediator => mediator.Send(request, It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -77,14 +80,14 @@ public class GetProductsEndpointTests
             .ReturnsAsync(products);
 
         // Act
-        await _endpoint.HandleAsync(request, CancellationToken.None);
+        var result = await _endpoint.ExecuteAsync(request, CancellationToken.None);
 
         // Assert
-        _endpoint.HttpContext.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
-
-        var responseBody = await new StreamReader(_endpoint.HttpContext.Response.Body).ReadToEndAsync();
-        var actualResponse = JsonSerializer.Deserialize<IEnumerable<ProductResponse>>(responseBody);
-        actualResponse.Should().BeEquivalentTo(products, options => options.Excluding(p => p.Price));
+        result.Should().NotBeNull();
+        result.Result.Should().BeOfType(typeof(Ok<IEnumerable<ProductResponse>>));
+        (result.Result as Ok<IEnumerable<ProductResponse>>)!.Value
+            .Should()
+            .BeEquivalentTo(products, options => options.Excluding(p => p.Price));
 
         _mediatorMock.Verify(mediator => mediator.Send(request, It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -97,17 +100,38 @@ public class GetProductsEndpointTests
 
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<GetAllProductsQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync([]);
+            .ReturnsAsync(new List<ProductResponse>());
 
         // Act
-        await _endpoint.HandleAsync(request, CancellationToken.None);
+        var result = await _endpoint.ExecuteAsync(request, CancellationToken.None);
 
         // Assert
-        _endpoint.HttpContext.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+        result.Should().NotBeNull();
+        result.Result.Should().BeOfType(typeof(Ok<IEnumerable<ProductResponse>>));
+        (result.Result as Ok<IEnumerable<ProductResponse>>)!.Value
+            .Should()
+            .BeEmpty();
 
-        var responseBody = await new StreamReader(_endpoint.HttpContext.Response.Body).ReadToEndAsync();
-        var actualResponse = JsonSerializer.Deserialize<IEnumerable<ProductResponse>>(responseBody);
-        actualResponse.Should().BeEmpty();
+        _mediatorMock.Verify(mediator => mediator.Send(request, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetProducts_ShouldReturnProblemDetails_WhenExternalApiFails()
+    {
+        // Arrange
+        var request = _fixture.Create<GetAllProductsQuery>();
+        _mediatorMock
+            .Setup(mediator => mediator.Send(It.IsAny<GetAllProductsQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new HttpClientCommunicationFailed("Failed to communicate with external API."));
+
+        // Act
+        var result = await _endpoint.ExecuteAsync(request, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Result.Should().BeOfType(typeof(JsonHttpResult<OperationFailureResponse>));
+        (result.Result as JsonHttpResult<OperationFailureResponse>)!.Value!.Errors
+            .Should().Contain(c => c.Message == "Failed to communicate with external API.");
 
         _mediatorMock.Verify(mediator => mediator.Send(request, It.IsAny<CancellationToken>()), Times.Once);
     }

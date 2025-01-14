@@ -3,7 +3,9 @@ using AutoFixture.AutoMoq;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using Moq;
+using ProductService.Application.Contracts;
 using ProductService.Application.Mappings;
 using ProductService.Application.Products.CreateProducts;
 using ProductService.Application.Repositories;
@@ -36,7 +38,7 @@ public class CreateProductCommandHandlerTests
         var command = _fixture.Create<CreateProductCommand>();
 
         _validatorMock
-            .Setup(validator => validator.ValidateAsync(command, default, default))
+            .Setup(validator => validator.ValidateAsync(command, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
         _productRepositoryMock
             .Setup(repo => repo.CreateProductAsync(It.IsAny<Product>()))
@@ -77,7 +79,7 @@ public class CreateProductCommandHandlerTests
                 new("Name", "Name is required")
             };
         _validatorMock
-            .Setup(validator => validator.ValidateAsync(command, default, default))
+            .Setup(validator => validator.ValidateAsync(command, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult(validationFailures));
 
         // Act
@@ -89,7 +91,7 @@ public class CreateProductCommandHandlerTests
             _ => default!,
             failed => failed.MapToResponse());
         resultError.Should().NotBeNull();
-        resultError.Should().BeOfType<ValidationFailed>();
+        resultError.Should().BeOfType <ValidationFailureResponse>();
 
         _productRepositoryMock.Verify(
             repo => repo.CreateProductAsync(It.IsAny<Product>()),

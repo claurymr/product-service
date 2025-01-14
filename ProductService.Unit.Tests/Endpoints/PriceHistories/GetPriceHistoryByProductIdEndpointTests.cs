@@ -1,13 +1,16 @@
 using System.Text.Json;
 using AutoFixture;
 using AutoFixture.AutoMoq;
+using FastEndpoints;
 using FluentAssertions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
 using ProductService.Api.Endpoints.PriceHistories;
 using ProductService.Application.Contracts;
 using ProductService.Application.ProductPriceHistories.GetPriceHistories;
+using ProductService.Application.Validation;
 using Xunit;
 
 namespace ProductService.Unit.Tests.Endpoints.PriceHistories;
@@ -46,14 +49,14 @@ public class GetPriceHistoryByProductIdEndpointTests
             .ReturnsAsync(priceHistories);
 
         // Act
-        await _endpoint.HandleAsync(request, CancellationToken.None);
+        var result = await _endpoint.ExecuteAsync(request, CancellationToken.None);
 
         // Assert
-        _endpoint.HttpContext.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
-
-        var responseBody = await new StreamReader(_endpoint.HttpContext.Response.Body).ReadToEndAsync();
-        var actualResponse = JsonSerializer.Deserialize<IEnumerable<PriceHistoryResponse>>(responseBody);
-        actualResponse.Should().BeEquivalentTo(priceHistories);
+        result.Should().NotBeNull();
+        result.Result.Should().BeOfType(typeof(Ok<IEnumerable<PriceHistoryResponse>>));
+        (result.Result as Ok<IEnumerable<PriceHistoryResponse>>)!.Value
+            .Should()
+            .BeEquivalentTo(priceHistories, options => options.Excluding(p => p.OldPrice).Excluding(p => p.NewPrice));
 
         _mediatorMock.Verify(mediator => mediator.Send(request, It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -84,14 +87,14 @@ public class GetPriceHistoryByProductIdEndpointTests
             .ReturnsAsync(priceHistories);
 
         // Act
-        await _endpoint.HandleAsync(request, CancellationToken.None);
+        var result = await _endpoint.ExecuteAsync(request, CancellationToken.None);
 
         // Assert
-        _endpoint.HttpContext.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
-
-        var responseBody = await new StreamReader(_endpoint.HttpContext.Response.Body).ReadToEndAsync();
-        var actualResponse = JsonSerializer.Deserialize<IEnumerable<PriceHistoryResponse>>(responseBody);
-        actualResponse.Should().BeEquivalentTo(priceHistories, options => options.Excluding(p => p.OldPrice).Excluding(p => p.NewPrice));
+        result.Should().NotBeNull();
+        result.Result.Should().BeOfType(typeof(Ok<IEnumerable<PriceHistoryResponse>>));
+        (result.Result as Ok<IEnumerable<PriceHistoryResponse>>)!.Value
+            .Should()
+            .BeEquivalentTo(priceHistories, options => options.Excluding(p => p.OldPrice).Excluding(p => p.NewPrice));
 
         _mediatorMock.Verify(mediator => mediator.Send(request, It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -109,15 +112,45 @@ public class GetPriceHistoryByProductIdEndpointTests
 
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<GetPriceHistoryByProductIdQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync([]);
+            .ReturnsAsync(new List<PriceHistoryResponse>());
 
         // Act
-        await _endpoint.HandleAsync(request, CancellationToken.None);
+        var result = await _endpoint.ExecuteAsync(request, CancellationToken.None);
 
         // Assert
-        _endpoint.HttpContext.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
-        var responseBody = await new StreamReader(_endpoint.HttpContext.Response.Body).ReadToEndAsync();
-        responseBody.Should().BeEmpty();
+        result.Should().NotBeNull();
+        result.Result.Should().BeOfType(typeof(Ok<IEnumerable<PriceHistoryResponse>>));
+        (result.Result as Ok<IEnumerable<PriceHistoryResponse>>)!.Value
+            .Should()
+            .BeEmpty();
+
+        _mediatorMock.Verify(mediator => mediator.Send(request, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetPriceHistoryByProductId_ShouldReturnCustomResult_WhenExternalApiFails()
+    {
+        // Arrange
+        var productId = Guid.NewGuid();
+        var request = _fixture
+                        .Build<GetPriceHistoryByProductIdQuery>()
+                        .With(p => p.ProductId, productId)
+                        .With(p => p.Currency, default(string))
+                        .Create();
+
+        _mediatorMock
+            .Setup(mediator => mediator.Send(It.IsAny<GetPriceHistoryByProductIdQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new HttpClientCommunicationFailed("Failed to communicate with external API."));
+
+        // Act
+        var result = await _endpoint.ExecuteAsync(request, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Result.Should().BeOfType(typeof(JsonHttpResult<OperationFailureResponse>));
+        (result.Result as JsonHttpResult<OperationFailureResponse>)!.StatusCode
+            .Should()
+            .Be(StatusCodes.Status500InternalServerError);
 
         _mediatorMock.Verify(mediator => mediator.Send(request, It.IsAny<CancellationToken>()), Times.Once);
     }

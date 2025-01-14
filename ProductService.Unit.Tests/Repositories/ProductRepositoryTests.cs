@@ -29,8 +29,6 @@ public class ProductRepositoryTests
                             .With(p => p.Id, Guid.Empty)
                             .Create();
         var repository = new ProductRepository(_dbContextMock);
-        var result = await _dbContextMock.Products.AddAsync(productAdd);
-        await _dbContextMock.SaveChangesAsync();
 
         // Act
         var entityId = await repository.CreateProductAsync(productAdd);

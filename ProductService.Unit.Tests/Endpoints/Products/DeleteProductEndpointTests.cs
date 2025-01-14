@@ -5,7 +5,9 @@ using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
 using ProductService.Api.Endpoints.Products;
+using ProductService.Application.Contracts;
 using ProductService.Application.Products.DeleteProducts;
+using ProductService.Application.Validation;
 using Xunit;
 
 namespace ProductService.Unit.Tests.Endpoints.Products;
@@ -42,6 +44,8 @@ public class DeleteProductEndpointTests
         // Assert
         result.Should().NotBeNull();
         result.Result.Should().BeOfType(typeof(NoContent));
+
+        _mediatorMock.Verify(mediator => mediator.Send(request, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -56,13 +60,17 @@ public class DeleteProductEndpointTests
 
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<DeleteProductCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(default(Guid));
+            .ReturnsAsync(new RecordNotFound([$"Product with Id {request.Id} not found."]));
 
         // Act
         var result = await _endpoint.ExecuteAsync(request, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result.Result.Should().BeOfType(typeof(NotFound));
+        result.Result.Should().BeOfType(typeof(NotFound<OperationFailureResponse>));
+        (result.Result as NotFound<OperationFailureResponse>)!.Value!
+            .Errors.Should().Contain(c => c.Message == $"Product with Id {request.Id} not found.");
+
+        _mediatorMock.Verify(mediator => mediator.Send(request, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

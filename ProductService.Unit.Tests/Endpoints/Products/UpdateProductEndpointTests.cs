@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
 using ProductService.Api.Endpoints.Products;
+using ProductService.Application.Contracts;
 using ProductService.Application.Products.UpdateProducts;
 using ProductService.Application.Validation;
 using Xunit;
@@ -58,14 +59,14 @@ public class UpdateProductEndpointTests
 
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<UpdateProductCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(default(Guid));
+            .ReturnsAsync(new RecordNotFound([$"Product with Id {productId} not found."]));
 
         // Act
         var result = await _endpoint.ExecuteAsync(request, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result.Result.Should().BeOfType(typeof(NotFound));
+        result.Result.Should().BeOfType(typeof(NotFound<OperationFailureResponse>));
     }
 
     [Fact]
@@ -87,6 +88,6 @@ public class UpdateProductEndpointTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Result.Should().BeOfType(typeof(BadRequest));
+        result.Result.Should().BeOfType(typeof(BadRequest<ValidationFailureResponse>));
     }
 }
