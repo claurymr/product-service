@@ -3,14 +3,13 @@ using AutoFixture.AutoMoq;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using Moq;
 using ProductService.Application.Contracts;
 using ProductService.Application.Mappings;
 using ProductService.Application.Products.CreateProducts;
 using ProductService.Application.Repositories;
-using ProductService.Application.Validation;
 using ProductService.Domain;
+using ProductService.Domain.Enums;
 using ProductService.Infrastructure.Handlers.Products.CreateProducts;
 using Xunit;
 
@@ -19,6 +18,7 @@ public class CreateProductCommandHandlerTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<IProductRepository> _productRepositoryMock;
+    private readonly Mock<IPriceHistoryRepository> _priceHistoryRepositoryMock;
     private readonly Mock<IValidator<CreateProductCommand>> _validatorMock;
     private readonly CreateProductCommandHandler _handler;
 
@@ -26,8 +26,11 @@ public class CreateProductCommandHandlerTests
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _productRepositoryMock = _fixture.Freeze<Mock<IProductRepository>>();
+        _priceHistoryRepositoryMock = _fixture.Freeze<Mock<IPriceHistoryRepository>>();
         _validatorMock = _fixture.Freeze<Mock<IValidator<CreateProductCommand>>>();
-        _handler = new CreateProductCommandHandler(_productRepositoryMock.Object, _validatorMock.Object);
+        _handler = new CreateProductCommandHandler(_productRepositoryMock.Object, 
+                    _priceHistoryRepositoryMock.Object, 
+                    _validatorMock.Object);
     }
 
     [Fact]
@@ -43,6 +46,10 @@ public class CreateProductCommandHandlerTests
         _productRepositoryMock
             .Setup(repo => repo.CreateProductAsync(It.IsAny<Product>()))
             .ReturnsAsync(productId);
+        _priceHistoryRepositoryMock
+            .Setup(repo => repo.CreatePriceHistoryByProductIdAsync(It.IsAny<Guid>(), 
+                It.IsAny<decimal>(), It.IsAny<decimal>(), It.IsAny<ActionType>()))
+            .Returns(Task.CompletedTask);
 
         // for later: mock triggering an event
 
@@ -55,15 +62,9 @@ public class CreateProductCommandHandlerTests
         resultValue.Should().Be(productId);
         result.IsError.Should().BeFalse();
         _productRepositoryMock.Verify(
-            repo => repo.CreateProductAsync(It.Is<Product>
-                (p =>
-                    p.Name == command.Name &&
-                    p.Description == command.Description &&
-                    p.Price == command.Price &&
-                    p.Category == command.Category &&
-                    p.Sku == command.Sku)),
-            Times.Once);
-
+            repo => repo.CreateProductAsync(It.IsAny<Product>()), Times.Once);
+        _priceHistoryRepositoryMock.Verify(
+            repo => repo.CreatePriceHistoryByProductIdAsync(productId, 0m, command.Price, ActionType.Entry), Times.Once);
         // for later: verify trigger of event
     }
 

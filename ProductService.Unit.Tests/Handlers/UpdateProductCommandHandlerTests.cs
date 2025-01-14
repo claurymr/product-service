@@ -8,8 +8,8 @@ using ProductService.Application.Contracts;
 using ProductService.Application.Mappings;
 using ProductService.Application.Products.UpdateProducts;
 using ProductService.Application.Repositories;
-using ProductService.Application.Validation;
 using ProductService.Domain;
+using ProductService.Domain.Enums;
 using ProductService.Infrastructure.Handlers.Products.UpdateProducts;
 using Xunit;
 
@@ -18,6 +18,7 @@ public class UpdateProductCommandHandlerTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<IProductRepository> _productRepositoryMock;
+    private readonly Mock<IPriceHistoryRepository> _priceHistoryRepositoryMock;
     private readonly Mock<IValidator<UpdateProductCommand>> _validatorMock;
     private readonly UpdateProductCommandHandler _handler;
 
@@ -25,17 +26,20 @@ public class UpdateProductCommandHandlerTests
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _productRepositoryMock = _fixture.Freeze<Mock<IProductRepository>>();
+        _priceHistoryRepositoryMock = _fixture.Freeze<Mock<IPriceHistoryRepository>>();
         _validatorMock = _fixture.Freeze<Mock<IValidator<UpdateProductCommand>>>();
-        _handler = new UpdateProductCommandHandler(_productRepositoryMock.Object, _validatorMock.Object);
+        _handler = new UpdateProductCommandHandler(_productRepositoryMock.Object,
+                    _priceHistoryRepositoryMock.Object,
+                    _validatorMock.Object);
     }
 
     [Fact]
     public async Task Handle_ShouldUpdateProductAndReturnSuccess_WhenRequestIsValid()
     {
         // Arrange
-        var productId = Guid.NewGuid();
+        var productReturn = (ProductId: Guid.NewGuid(), OldPrice: 0m);
         var command = _fixture.Build<UpdateProductCommand>()
-                              .With(c => c.Id, productId)
+                              .With(c => c.Id, productReturn.ProductId)
                               .Create();
 
         _validatorMock
@@ -43,7 +47,11 @@ public class UpdateProductCommandHandlerTests
             .ReturnsAsync(new ValidationResult());
         _productRepositoryMock
             .Setup(repo => repo.UpdateProductAsync(It.IsAny<Guid>(), It.IsAny<Product>()))
-            .ReturnsAsync(productId);
+            .ReturnsAsync(productReturn);
+        _priceHistoryRepositoryMock
+            .Setup(repo => repo.CreatePriceHistoryByProductIdAsync(It.IsAny<Guid>(),
+                It.IsAny<decimal>(), It.IsAny<decimal>(), It.IsAny<ActionType>()))
+            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -51,8 +59,12 @@ public class UpdateProductCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         var resultValue = result.Match(guid => guid, _ => default!, _ => default!);
-        resultValue.Should().Be(productId);
-        _productRepositoryMock.Verify(repo => repo.UpdateProductAsync(productId, It.IsAny<Product>()), Times.Once);
+        resultValue.Should().Be(productReturn.ProductId);
+
+        _productRepositoryMock.Verify(repo => repo.UpdateProductAsync(productReturn.ProductId, It.IsAny<Product>()), Times.Once);
+        _priceHistoryRepositoryMock.Verify(repo =>
+            repo.CreatePriceHistoryByProductIdAsync(productReturn.ProductId, productReturn.OldPrice,
+                command.Price, ActionType.Increased), Times.Once);
         // verify event publisher is called once
     }
 
@@ -98,13 +110,16 @@ public class UpdateProductCommandHandlerTests
     public async Task Handle_ShouldReturnRecordNotFound_WhenProductDoesNotExist()
     {
         // Arrange
-        var productId = Guid.NewGuid();
+        var productIdUpdate = Guid.NewGuid();
+        var productReturn = (ProductId: Guid.Empty, OldPrice: 100m);
+        var newPrice = 200m;
         var command = _fixture.Build<UpdateProductCommand>()
-                              .With(c => c.Id, productId)
+                              .With(c => c.Id, productIdUpdate)
+                              .With(c => c.Price, newPrice)
                               .Create();
         _productRepositoryMock
             .Setup(repo => repo.UpdateProductAsync(It.IsAny<Guid>(), It.IsAny<Product>()))
-            .ReturnsAsync(Guid.Empty);
+            .ReturnsAsync(productReturn);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -117,9 +132,12 @@ public class UpdateProductCommandHandlerTests
             notFound => notFound.MapToResponse());
         resultNotFound.Should().NotBeNull();
         resultNotFound.Should().BeOfType<OperationFailureResponse>();
-        resultNotFound.Errors.Should().ContainSingle(e => e.Message == $"Product with Id {productId} not found.");
+        resultNotFound.Errors.Should().ContainSingle(e => e.Message == $"Product with Id {productIdUpdate} not found.");
 
-        _productRepositoryMock.Verify(repo => repo.UpdateProductAsync(productId, It.IsAny<Product>()), Times.Once);
+        _productRepositoryMock.Verify(repo => repo.UpdateProductAsync(productIdUpdate, It.IsAny<Product>()), Times.Once);
+        _priceHistoryRepositoryMock.Verify(repo =>
+            repo.CreatePriceHistoryByProductIdAsync(productReturn.ProductId, productReturn.OldPrice,
+                newPrice, It.IsAny<ActionType>()), Times.Never);
         // verify event publisher is not called
     }
 }

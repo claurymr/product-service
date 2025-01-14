@@ -37,18 +37,20 @@ public class ProductRepository(ProductServiceDbContext dbContext) : IProductRepo
         return await dbContext.Products.Where(p => p.Category == category).ToListAsync();
     }
 
-    public async Task<Guid> UpdateProductAsync(Guid id, Product product)
+    public async Task<(Guid ProductId, decimal OldPrice)> UpdateProductAsync(Guid id, Product product)
     {
         var existingProduct = await dbContext.Products.FindAsync(id);
         if (existingProduct == null)
         {
-            return Guid.Empty;
+            return (Guid.Empty, default(decimal));
         }
+
+        var oldPrice = existingProduct.Price;
         existingProduct.Name = product.Name;
         existingProduct.Category = product.Category;
         existingProduct.Price = product.Price;
         await dbContext.SaveChangesAsync();
 
-        return existingProduct.Id;
+        return (existingProduct.Id, oldPrice);
     }
 }
