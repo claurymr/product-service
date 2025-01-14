@@ -1,19 +1,19 @@
 using MediatR;
 using ProductService.Application.Contracts;
+using ProductService.Application.Products.GetProducts;
 using ProductService.Application.Repositories;
+using ProductService.Application.Mappings;
 
-namespace ProductService.Application.Products.GetProducts;
+namespace ProductService.Infrastructure.Handlers.Products.GetProducts;
 public class GetAllProductsQueryHandler(IProductRepository productRepository)
     : IRequestHandler<GetAllProductsQuery, IEnumerable<ProductResponse>>
 {
-    // Declare repository private field
     // Declare httpclient private field
-    // Call main ctor and initialize repository and httpclient
-    public Task<IEnumerable<ProductResponse>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<ProductResponse>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
     {
         // get currency if present, from external api using httpclient
+        var products = await productRepository.GetProductsAsync();
         // get products with applied calculation of price, and mapped to currency
-        // return list of products
-        throw new NotImplementedException();
+        return products.MapToResponse();
     }
 }

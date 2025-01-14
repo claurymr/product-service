@@ -5,6 +5,7 @@ using Moq;
 using ProductService.Application.ProductPriceHistories.GetPriceHistories;
 using ProductService.Application.Repositories;
 using ProductService.Domain;
+using ProductService.Infrastructure.Handlers.PriceHistories;
 using Xunit;
 
 namespace ProductService.Unit.Tests.Handlers;

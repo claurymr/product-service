@@ -59,15 +59,27 @@ public static class ContractMapping
 
     public static IEnumerable<ProductResponse> MapToResponse(this IEnumerable<Product> products)
     {
-        return products.Select(product => new ProductResponse
+        return products.Select(MapToResponse);
+    }
+
+    public static PriceHistoryResponse MapToResponse(this PriceHistory priceHistory)
+    {
+        return new PriceHistoryResponse
         {
-            Id = product.Id,
-            Name = product.Name,
-            Description = product.Description,
-            Category = product.Category,
-            Price = product.Price,
-            Sku = product.Sku
-        });
+            Id = priceHistory.Id,
+            ProductId = priceHistory.ProductId,
+            ProductName = priceHistory.Product.Name,
+            ProductSku = priceHistory.Product.Sku,
+            OldPrice = priceHistory.OldPrice,
+            NewPrice = priceHistory.NewPrice,
+            Action = (Enums.ActionType)priceHistory.Action,
+            Timestamp = priceHistory.Timestamp
+        };
+    }
+
+    public static IEnumerable<PriceHistoryResponse> MapToResponse(this IEnumerable<PriceHistory> priceHistories)
+    {
+        return priceHistories.Select(MapToResponse);
     }
 
     public static Product MapToDomain(this CreateProductCommand request)
