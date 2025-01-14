@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using ProductService.Application.Contracts;
 using ProductService.Application.Mappings;
 using ProductService.Application.ProductPriceHistories.GetPriceHistories;
-using ProductService.Application.Validation;
 
 namespace ProductService.Api.Endpoints.PriceHistories;
 public class GetPriceHistoryByProductIdEndpoint(IMediator mediator)
