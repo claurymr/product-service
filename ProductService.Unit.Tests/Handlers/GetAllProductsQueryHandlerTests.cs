@@ -5,6 +5,7 @@ using Moq;
 using ProductService.Application.Products.GetProducts;
 using ProductService.Application.Repositories;
 using ProductService.Domain;
+using ProductService.Infrastructure.Handlers.Products.GetProducts;
 using Xunit;
 
 namespace ProductService.Unit.Tests.Handlers;

@@ -6,6 +6,7 @@ using ProductService.Application.Mappings;
 using ProductService.Application.Products.DeleteProducts;
 using ProductService.Application.Repositories;
 using ProductService.Application.Validation;
+using ProductService.Infrastructure.Handlers.Products.DeleteProducts;
 using Xunit;
 
 namespace ProductService.Unit.Tests.Handlers;
