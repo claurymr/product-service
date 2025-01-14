@@ -1,4 +1,3 @@
-using ProductService.Application.Contracts;
 using ProductService.Domain;
 
 namespace ProductService.Application.Repositories;
@@ -9,5 +8,5 @@ public interface IProductRepository
     Task<IEnumerable<Product>> GetProductsAsync();
     Task<IEnumerable<Product>> GetProductsByCategoryAsync(string category);
     Task<Product> GetProductByIdAsync(Guid id);
-    Task<Guid> UpdateProductAsync(Guid id, Product product);
+    Task<(Guid ProductId, decimal OldPrice)> UpdateProductAsync(Guid id, Product product);
 }
