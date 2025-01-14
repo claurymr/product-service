@@ -3,13 +3,13 @@ using ProductService.Application.Enums;
 namespace ProductService.Application.Contracts;
 public record PriceHistoryResponse
 {
-    public Guid Id { get; set; }
-    public Guid ProductId { get; set; }
+    public Guid Id { get; init; }
+    public Guid ProductId { get; init; }
     public string ProductName { get; init; } = string.Empty;
     public string ProductSku { get; init; } = string.Empty;
-    public decimal OldPrice { get; set; }
-    public decimal NewPrice { get; set; }
-    public string? Currency { get; set; }
-    public ActionType Action { get; set; }
-    public DateTimeOffset Timestamp { get; set; }
+    public decimal OldPrice { get; init; }
+    public decimal NewPrice { get; init; }
+    public string? Currency { get; init; }
+    public ActionType Action { get; init; }
+    public DateTimeOffset Timestamp { get; init; }
 }

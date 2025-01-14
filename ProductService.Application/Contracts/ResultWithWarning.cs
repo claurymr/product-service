@@ -1,5 +1,5 @@
 namespace ProductService.Application.Contracts;
-public class ResultWithWarning<TValue, TError, TWarning>
+public readonly struct ResultWithWarning<TValue, TError, TWarning>
 {
     public bool IsError { get; }
     public bool IsWarning { get; }
