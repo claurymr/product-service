@@ -1,5 +1,6 @@
 using FluentValidation.Results;
 using ProductService.Application.Contracts;
+
 using ProductService.Application.Products.CreateProducts;
 using ProductService.Application.Products.UpdateProducts;
 using ProductService.Application.Validation;
