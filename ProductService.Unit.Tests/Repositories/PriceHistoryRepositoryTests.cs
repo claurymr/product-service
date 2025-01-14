@@ -31,10 +31,10 @@ public class PriceHistoryRepositoryTests
                             .Create();
         var repository = new PriceHistoryRepository(_dbContextMock);
         var result = await _dbContextMock.Products.AddAsync(productAdd);
-        var addedProductId = result.Entity.Id;
         var expectedHistory1 = _fixture
                                 .Build<PriceHistory>()
-                                .With(p => p.ProductId, addedProductId)
+                                .With(p => p.ProductId, productAdd.Id)
+                                .With(p => p.Product, productAdd)
                                 .With(p => p.OldPrice, 0)
                                 .With(p => p.NewPrice, productAdd.Price)
                                 .With(p => p.Action, ActionType.Entry)
@@ -43,21 +43,22 @@ public class PriceHistoryRepositoryTests
         productAdd.Price = 100;
         var expectedHistory2 = _fixture
                                 .Build<PriceHistory>()
-                                .With(p => p.ProductId, addedProductId)
+                                .With(p => p.ProductId, productAdd.Id)
+                                .With(p => p.Product, productAdd)
                                 .With(p => p.OldPrice, expectedHistory1.NewPrice)
                                 .With(p => p.NewPrice, productAdd.Price)
-                                .With(p => p.Action, ActionType.Entry)
+                                .With(p => p.Action, ActionType.Reduced)
                                 .With(p => p.Timestamp, DateTime.UtcNow)
                                 .Create();
         await _dbContextMock.PriceHistories.AddRangeAsync(expectedHistory1, expectedHistory2);
         await _dbContextMock.SaveChangesAsync();
 
         // Act
-        var histories = await repository.GetPriceHistoryByProductIdAsync(addedProductId);
+        var histories = await repository.GetPriceHistoryByProductIdAsync(productAdd.Id);
 
         // Assert
         histories.Should().HaveCount(2);
-        histories.Should().AllSatisfy(c => c.ProductId = addedProductId);
+        histories.Should().AllSatisfy(c => c.ProductId = productAdd.Id);
     }
 
     [Fact]

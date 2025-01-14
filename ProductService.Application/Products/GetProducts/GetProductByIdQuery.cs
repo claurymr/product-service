@@ -6,4 +6,4 @@ namespace ProductService.Application.Products.GetProducts;
 public record GetProductByIdQuery(
     Guid Id,
     string? Currency = null)
-    : IRequest<Result<ProductResponse, RecordNotFound>>;
+    : IRequest<ResultWithWarning<ProductResponse, HttpClientCommunicationFailed, RecordNotFound>>;

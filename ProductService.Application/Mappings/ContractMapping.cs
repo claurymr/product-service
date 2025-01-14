@@ -44,6 +44,17 @@ public static class ContractMapping
         };
     }
 
+    public static OperationFailureResponse MapToResponse(this HttpClientCommunicationFailed failed)
+    {
+        return new OperationFailureResponse
+        {
+            Errors = failed.Messages.Select(message => new OperationResponse
+            {
+                Message = message
+            })
+        };
+    }
+
     public static ProductResponse MapToResponse(this Product product)
     {
         return new ProductResponse

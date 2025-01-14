@@ -2,6 +2,7 @@ using AutoFixture;
 using AutoFixture.AutoMoq;
 using FluentAssertions;
 using Moq;
+using ProductService.Application.Contracts;
 using ProductService.Application.Mappings;
 using ProductService.Application.Products.DeleteProducts;
 using ProductService.Application.Repositories;
@@ -65,8 +66,8 @@ public class DeleteProductCommandHandlerTests
             _ => default!, 
             notFound => notFound.MapToResponse());
         resultNotFound.Should().NotBeNull();
-        resultNotFound.Should().BeOfType<RecordNotFound>();
-        resultNotFound.Errors.Should().ContainSingle(e => e.Message == $"Product with ID {productId} not found.");
+        resultNotFound.Should().BeOfType<OperationFailureResponse>();
+        resultNotFound.Errors.Should().ContainSingle(e => e.Message == $"Product with Id {productId} not found.");
         _productRepositoryMock.Verify(repo => repo.DeleteProductAsync(productId), Times.Once);
         // verify publisher is not called
     }

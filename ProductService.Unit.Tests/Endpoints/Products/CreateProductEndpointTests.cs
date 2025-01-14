@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
 using ProductService.Api.Endpoints.Products;
+using ProductService.Application.Contracts;
 using ProductService.Application.Products.CreateProducts;
 using ProductService.Application.Validation;
 using Xunit;
@@ -42,6 +43,8 @@ public class CreateProductEndpointTests
         result.Should().NotBeNull();
         result.Result.Should().BeOfType(typeof(Created<Guid>));
         (result.Result as Created<Guid>)!.Value.Should().Be(productId);
+
+        _mediatorMock.Verify(mediator => mediator.Send(request, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -63,6 +66,12 @@ public class CreateProductEndpointTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Result.Should().BeOfType(typeof(BadRequest));
+        result.Result.Should().BeOfType(typeof(BadRequest<ValidationFailureResponse>));
+        (result.Result as BadRequest<ValidationFailureResponse>)!.Value!
+            .Errors.Should().HaveCount(1);
+        (result.Result as BadRequest<ValidationFailureResponse>)!.Value!
+        .Errors.Should().ContainSingle(c => c.Message == "Name is required");
+
+        _mediatorMock.Verify(mediator => mediator.Send(request, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

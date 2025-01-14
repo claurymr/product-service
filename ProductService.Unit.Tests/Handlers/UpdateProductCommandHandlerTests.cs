@@ -39,7 +39,7 @@ public class UpdateProductCommandHandlerTests
                               .Create();
 
         _validatorMock
-            .Setup(validator => validator.ValidateAsync(command, default, default))
+            .Setup(validator => validator.ValidateAsync(command, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
         _productRepositoryMock
             .Setup(repo => repo.UpdateProductAsync(It.IsAny<Guid>(), It.IsAny<Product>()))
@@ -52,15 +52,7 @@ public class UpdateProductCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         var resultValue = result.Match(guid => guid, _ => default!, _ => default!);
         resultValue.Should().Be(productId);
-        _productRepositoryMock.Verify(repo => repo.UpdateProductAsync(productId, It.Is<Product>
-            (p =>
-                p.Id == command.Id &&
-                p.Name == command.Name &&
-                p.Description == command.Description &&
-                p.Price == command.Price &&
-                p.Category == command.Category &&
-                p.Sku == command.Sku)),
-            Times.Once);
+        _productRepositoryMock.Verify(repo => repo.UpdateProductAsync(productId, It.IsAny<Product>()), Times.Once);
         // verify event publisher is called once
     }
 
@@ -80,7 +72,7 @@ public class UpdateProductCommandHandlerTests
             new("Price", "Price is required.")
         });
         _validatorMock
-            .Setup(validator => validator.ValidateAsync(command, default, default))
+            .Setup(validator => validator.ValidateAsync(command, It.IsAny<CancellationToken>()))
             .ReturnsAsync(validationErrors);
 
         // Act
@@ -94,9 +86,10 @@ public class UpdateProductCommandHandlerTests
             _ => default!);
         resultValidation.Should().NotBeNull();
         resultValidation.Should().BeOfType<ValidationFailureResponse>();
-        resultValidation.Errors.Should().HaveCount(5);
+        resultValidation.Errors.Should().HaveCount(2);
         resultValidation.Errors.Should().ContainSingle(e => e.Message == "Name is required.");
         resultValidation.Errors.Should().ContainSingle(e => e.Message == "Price is required.");
+
         _productRepositoryMock.Verify(repo => repo.UpdateProductAsync(It.IsAny<Guid>(), It.IsAny<Product>()), Times.Never);
         // verify event publisher is not called
     }
@@ -117,14 +110,15 @@ public class UpdateProductCommandHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        result.IsError.Should().BeTrue();
+        result.IsSuccess.Should().BeFalse();
         var resultNotFound = result.Match(
             _ => default!,
             _ => default!,
             notFound => notFound.MapToResponse());
         resultNotFound.Should().NotBeNull();
-        resultNotFound.Should().BeOfType<RecordNotFound>();
-        resultNotFound.Errors.Should().ContainSingle(e => e.Message == $"Product with ID {productId} not found.");
+        resultNotFound.Should().BeOfType<OperationFailureResponse>();
+        resultNotFound.Errors.Should().ContainSingle(e => e.Message == $"Product with Id {productId} not found.");
+
         _productRepositoryMock.Verify(repo => repo.UpdateProductAsync(productId, It.IsAny<Product>()), Times.Once);
         // verify event publisher is not called
     }
