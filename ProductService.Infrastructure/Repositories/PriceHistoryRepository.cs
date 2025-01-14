@@ -1,11 +1,17 @@
-using ProductService.Application.Contracts;
+using Microsoft.EntityFrameworkCore;
 using ProductService.Application.Repositories;
+using ProductService.Domain;
+using ProductService.Infrastructure.Data;
 
 namespace ProductService.Infrastructure.Repositories;
-public class PriceHistoryRepository : IPriceHistoryRepository
+public sealed class PriceHistoryRepository(ProductServiceDbContext dbContext) : IPriceHistoryRepository
 {
-    public Task<IEnumerable<PriceHistoryResponse>> GetPriceHistoryByProductIdAsync(Guid id)
+
+    public async Task<IEnumerable<PriceHistory>> GetPriceHistoryByProductIdAsync(Guid id)
     {
-        throw new NotImplementedException();
+        return await dbContext.PriceHistories
+                        .Where(ph => ph.ProductId == id)
+                        .Include(ph => ph.Product)
+                        .ToListAsync();
     }
 }

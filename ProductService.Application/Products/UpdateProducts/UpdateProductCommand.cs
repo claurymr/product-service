@@ -10,4 +10,4 @@ public record UpdateProductCommand(
     decimal Price,
     string Category,
     string Sku)
-    : IRequest<Result<bool, ValidationFailed>>;
+    : IRequest<ResultWithWarning<Guid, ValidationFailed, RecordNotFound>>;

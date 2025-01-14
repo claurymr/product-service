@@ -1,10 +1,13 @@
 using FastEndpoints;
 using MediatR;
+using Microsoft.AspNetCore.Http.HttpResults;
 using ProductService.Application.Contracts;
+using ProductService.Application.Mappings;
 using ProductService.Application.Products.GetProducts;
 
 namespace ProductService.Api.Endpoints.Products;
-public class GetProductsByCategoryEndpoint(IMediator mediator) : Endpoint<GetProductsByCategoryQuery, IEnumerable<ProductResponse>>
+public class GetProductsByCategoryEndpoint(IMediator mediator)
+    : Endpoint<GetProductsByCategoryQuery, Results<Ok<IEnumerable<ProductResponse>>, JsonHttpResult<OperationFailureResponse>>>
 {
     private readonly IMediator _mediator = mediator;
 
@@ -14,14 +17,18 @@ public class GetProductsByCategoryEndpoint(IMediator mediator) : Endpoint<GetPro
         AllowAnonymous(); //For now
     }
 
-    public override async Task HandleAsync(GetProductsByCategoryQuery req, CancellationToken ct)
+    public override async Task<Results<Ok<IEnumerable<ProductResponse>>, JsonHttpResult<OperationFailureResponse>>>
+        ExecuteAsync(GetProductsByCategoryQuery req, CancellationToken ct)
     {
         var result = await _mediator.Send(req, ct);
-        if (result is null)
+        var response = result.Match<IResult>(
+                        productsResponse => TypedResults.Ok(productsResponse),
+                        failed => TypedResults.Json(failed.MapToResponse(), statusCode: StatusCodes.Status500InternalServerError));
+        return response switch
         {
-            await SendNotFoundAsync(ct);
-            return;
-        }
-        await SendOkAsync(result!, ct);
+            Ok<IEnumerable<ProductResponse>> success => success,
+            JsonHttpResult<OperationFailureResponse> problem => problem,
+            _ => throw new Exception()
+        };
     }
 }

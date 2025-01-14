@@ -13,6 +13,7 @@ builder.Services.AddFastEndpoints();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddProductServiceServices();
+builder.Services.AddExchangeRateApi(builder.Configuration);
 builder.Services.AddDbContext<ProductServiceDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("ProductServiceConnection")));
 builder.Services.AddMediatR(config =>
