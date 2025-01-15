@@ -10,13 +10,15 @@ namespace ProductService.Infrastructure.Handlers.PriceHistories;
 public class GetPriceHistoryByProductIdQueryHandler(IPriceHistoryRepository priceHistoryRepository, IExchangeRateApiService exchangeRateApiService)
     : IRequestHandler<GetPriceHistoryByProductIdQuery, Result<IEnumerable<PriceHistoryResponse>, HttpClientCommunicationFailed>>
 {
+    private readonly IPriceHistoryRepository _priceHistoryRepository = priceHistoryRepository;
+    private readonly IExchangeRateApiService _exchangeRateApiService = exchangeRateApiService;
+
     public async Task<Result<IEnumerable<PriceHistoryResponse>, HttpClientCommunicationFailed>> Handle(GetPriceHistoryByProductIdQuery request, CancellationToken cancellationToken)
     {
-        // get currency if present, from external api using httpclient
-        var priceHistories = await priceHistoryRepository.GetPriceHistoryByProductIdAsync(request.ProductId);
+        var priceHistories = await _priceHistoryRepository.GetPriceHistoryByProductIdAsync(request.ProductId);
         if (request.Currency is not null)
         {
-            var exchangeRateResult = await exchangeRateApiService.GetExchangeRateAsync(request.Currency);
+            var exchangeRateResult = await _exchangeRateApiService.GetExchangeRateAsync(request.Currency);
             if (exchangeRateResult.IsError)
             {
                 return exchangeRateResult.Match(_ => default!, error => error);

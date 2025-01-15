@@ -9,21 +9,33 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
+      - RabbitMQ__HostName=store-rabbitmq
+      - RabbitMQ__QueueName=productservice-queue
+      - RabbitMQ__Port=5672
     volumes:
       - productservice-data:/app/Data
     depends_on:
       - rabbitmq
+    networks:
+      - shared-network
+
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: Queue
-    hostname: productinventory-queue
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - rabbitmq-data:/app/Data
     environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+    networks:
+      - shared-network
 
 volumes:
   productservice-data:
-    driver: local
+  rabbitmq-data:
+
+networks:
+  shared-network:
+    external: true
