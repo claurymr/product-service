@@ -10,13 +10,15 @@ namespace ProductService.Infrastructure.Handlers.Products.GetProducts;
 public class GetAllProductsQueryHandler(IProductRepository productRepository, IExchangeRateApiService exchangeRateApiService)
     : IRequestHandler<GetAllProductsQuery, Result<IEnumerable<ProductResponse>, HttpClientCommunicationFailed>>
 {
+    private readonly IProductRepository _productRepository = productRepository;
+    private readonly IExchangeRateApiService _exchangeRateApiService = exchangeRateApiService;
+
     public async Task<Result<IEnumerable<ProductResponse>, HttpClientCommunicationFailed>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
     {
-        // get currency if present, from external api using httpclient
-        var products = await productRepository.GetProductsAsync();
+        var products = await _productRepository.GetProductsAsync();
         if (request.Currency is not null)
         {
-            var exchangeRateResult = await exchangeRateApiService.GetExchangeRateAsync(request.Currency);
+            var exchangeRateResult = await _exchangeRateApiService.GetExchangeRateAsync(request.Currency);
             if (exchangeRateResult.IsError)
             {
                 return exchangeRateResult.Match(_ => default!, error => error);

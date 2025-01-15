@@ -6,12 +6,21 @@ using ProductService.Application.Repositories;
 using ProductService.Application.Validation;
 using ProductService.Application.Mappings;
 using ProductService.Domain.Enums;
+using ProductService.Application.EventBus;
 
 namespace ProductService.Infrastructure.Handlers.Products.UpdateProducts;
 public class UpdateProductCommandHandler
-    (IProductRepository productRepository, IPriceHistoryRepository priceHistoryRepository, IValidator<UpdateProductCommand> _validator)
+    (IProductRepository productRepository,
+    IPriceHistoryRepository priceHistoryRepository,
+    IValidator<UpdateProductCommand> validator,
+    IEventBus eventBus)
     : IRequestHandler<UpdateProductCommand, ResultWithWarning<Guid, ValidationFailed, RecordNotFound>>
 {
+    private readonly IProductRepository _productRepository = productRepository;
+    private readonly IPriceHistoryRepository _priceHistoryRepository = priceHistoryRepository;
+    private readonly IValidator<UpdateProductCommand> _validator = validator;
+    private readonly IEventBus _eventBus = eventBus;
+
     public async Task<ResultWithWarning<Guid, ValidationFailed, RecordNotFound>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
         var validationResult = await _validator.ValidateAsync(request, cancellationToken);
@@ -21,7 +30,7 @@ public class UpdateProductCommandHandler
         }
 
         var product = request.MapToDomain();
-        var (ProductId, OldPrice) = await productRepository.UpdateProductAsync(request.Id, product);
+        var (ProductId, OldPrice) = await _productRepository.UpdateProductAsync(request.Id, product);
 
         if (ProductId == Guid.Empty)
         {
@@ -35,12 +44,19 @@ public class UpdateProductCommandHandler
                         : ActionType.Exit;
         await AddProductPriceHistory(ProductId, OldPrice, newPrice, actionType);
 
-        // trigger event
+        // Publish the product created event to the message broker.
+        await _eventBus.PublishAsync(
+                new ProductUpdatedEvent
+                {
+                    Id = ProductId,
+                    OldPrice = OldPrice,
+                    NewPrice = newPrice
+                }, cancellationToken);
         return ProductId;
     }
 
     private async Task AddProductPriceHistory(Guid productId, decimal oldPrice, decimal newPrice, ActionType actionType)
     {
-       await priceHistoryRepository.CreatePriceHistoryByProductIdAsync(productId, oldPrice, newPrice, actionType);
+        await _priceHistoryRepository.CreatePriceHistoryByProductIdAsync(productId, oldPrice, newPrice, actionType);
     }
 }

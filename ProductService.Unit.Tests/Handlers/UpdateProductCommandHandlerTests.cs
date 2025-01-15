@@ -5,6 +5,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Moq;
 using ProductService.Application.Contracts;
+using ProductService.Application.EventBus;
 using ProductService.Application.Mappings;
 using ProductService.Application.Products.UpdateProducts;
 using ProductService.Application.Repositories;
@@ -20,6 +21,7 @@ public class UpdateProductCommandHandlerTests
     private readonly Mock<IProductRepository> _productRepositoryMock;
     private readonly Mock<IPriceHistoryRepository> _priceHistoryRepositoryMock;
     private readonly Mock<IValidator<UpdateProductCommand>> _validatorMock;
+    private readonly Mock<IEventBus> _eventBusMock = new();
     private readonly UpdateProductCommandHandler _handler;
 
     public UpdateProductCommandHandlerTests()
@@ -30,7 +32,8 @@ public class UpdateProductCommandHandlerTests
         _validatorMock = _fixture.Freeze<Mock<IValidator<UpdateProductCommand>>>();
         _handler = new UpdateProductCommandHandler(_productRepositoryMock.Object,
                     _priceHistoryRepositoryMock.Object,
-                    _validatorMock.Object);
+                    _validatorMock.Object,
+                    _eventBusMock.Object);
     }
 
     [Fact]
@@ -52,6 +55,9 @@ public class UpdateProductCommandHandlerTests
             .Setup(repo => repo.CreatePriceHistoryByProductIdAsync(It.IsAny<Guid>(),
                 It.IsAny<decimal>(), It.IsAny<decimal>(), It.IsAny<ActionType>()))
             .Returns(Task.CompletedTask);
+        _eventBusMock
+            .Setup(eventBus => eventBus.PublishAsync(It.IsAny<ProductUpdatedEvent>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -65,7 +71,10 @@ public class UpdateProductCommandHandlerTests
         _priceHistoryRepositoryMock.Verify(repo =>
             repo.CreatePriceHistoryByProductIdAsync(productReturn.ProductId, productReturn.OldPrice,
                 command.Price, ActionType.Increased), Times.Once);
-        // verify event publisher is called once
+        _eventBusMock
+            .Verify(
+                eventBus => eventBus.PublishAsync(It.IsAny<ProductUpdatedEvent>(), It.IsAny<CancellationToken>()), 
+                Times.Once);
     }
 
     [Fact]
@@ -103,7 +112,7 @@ public class UpdateProductCommandHandlerTests
         resultValidation.Errors.Should().ContainSingle(e => e.Message == "Price is required.");
 
         _productRepositoryMock.Verify(repo => repo.UpdateProductAsync(It.IsAny<Guid>(), It.IsAny<Product>()), Times.Never);
-        // verify event publisher is not called
+        _eventBusMock.Verify(eventBus => eventBus.PublishAsync(It.IsAny<ProductUpdatedEvent>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -138,6 +147,6 @@ public class UpdateProductCommandHandlerTests
         _priceHistoryRepositoryMock.Verify(repo =>
             repo.CreatePriceHistoryByProductIdAsync(productReturn.ProductId, productReturn.OldPrice,
                 newPrice, It.IsAny<ActionType>()), Times.Never);
-        // verify event publisher is not called
+        _eventBusMock.Verify(eventBus => eventBus.PublishAsync(It.IsAny<ProductUpdatedEvent>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }
