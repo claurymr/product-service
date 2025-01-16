@@ -40,7 +40,7 @@ public class CreateProductCommandHandler
                 new ProductCreatedEvent
                 {
                     Id = productId,
-                    Price = product.Price
+                    ProductName = product.Name
                 }, cancellationToken);
         return productId;
     }
