@@ -15,7 +15,19 @@ public class UpdateProductEndpoint(IMediator mediator)
     public override void Configure()
     {
         Put("/products/{id}");
-        AllowAnonymous(); //For now
+
+        Options(x =>
+        {
+            x.RequireAuthorization("Admin");
+            x.WithDisplayName("Update Product");
+            x.Produces<NoContent>(StatusCodes.Status204NoContent);
+            x.Produces<BadRequest<ValidationFailureResponse>>(StatusCodes.Status400BadRequest);
+            x.Produces<NotFound<OperationFailureResponse>>(StatusCodes.Status404NotFound);
+            x.Produces<UnauthorizedHttpResult>(StatusCodes.Status401Unauthorized);
+            x.Produces<ForbidHttpResult>(StatusCodes.Status403Forbidden);
+            x.Accepts<UpdateProductCommand>();
+            x.WithOpenApi();
+        });
     }
 
     public override async Task<Results<NoContent, BadRequest<ValidationFailureResponse>, NotFound<OperationFailureResponse>>> 

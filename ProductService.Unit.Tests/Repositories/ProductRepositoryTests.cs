@@ -173,4 +173,32 @@ public class ProductRepositoryTests
         // Assert
         result.Should().BeNull();
     }
+
+    [Fact]
+    public async Task UpdateProductAsync_ShouldUpdateProduct_WhenProductExists()
+    {
+        // Arrange
+        var price = 50m;
+        var product = _fixture
+                        .Build<Product>()
+                        .With(p => p.Id, Guid.Empty)
+                        .With(p => p.Price, price)
+                        .Create();
+        await _dbContextMock.Products.AddAsync(product);
+        await _dbContextMock.SaveChangesAsync();
+
+        var repository = new ProductRepository(_dbContextMock);
+        var updatedProduct = _fixture
+                            .Build<Product>()
+                            .With(p => p.Id, product.Id)
+                            .With(p => p.Price, 100m)
+                            .Create();
+
+        // Act
+        var result = await repository.UpdateProductAsync(product.Id, updatedProduct);
+
+        // Assert
+        result.ProductId.Should().Be(product.Id);
+        result.OldPrice.Should().Be(price);
+    }
 }

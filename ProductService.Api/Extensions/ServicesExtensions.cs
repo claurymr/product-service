@@ -1,5 +1,8 @@
+using System.Text;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using ProductService.Application.Contracts;
 using ProductService.Application.EventBus;
 using ProductService.Application.Repositories;
@@ -48,11 +51,43 @@ internal static class ServicesExtensions
                     h.Username(rabbitMQSettings.UserName);
                     h.Password(rabbitMQSettings.Password);
                 });
+                cfg.ConfigureEndpoints(context);
             });
         });
 
         services.AddTransient<IEventBus, EventBus>();
-        
+
+        return services;
+    }
+
+    public static IServiceCollection AddAuth(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                var secret = Encoding.UTF8.GetBytes(configuration["Auth:Secret"]!);
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = configuration["Auth:Issuer"],
+                    ValidAudience = configuration["Auth:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(secret)
+                };
+                options.Authority = configuration["Auth:Issuer"];
+                options.RequireHttpsMetadata = true;
+            });
+
+        return services;
+    }
+
+    public static IServiceCollection AddConfigSettings(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<AuthSettings>(configuration.GetSection("Auth"));
+        services.AddSingleton(sp =>
+            sp.GetRequiredService<IOptions<AuthSettings>>().Value);
         return services;
     }
 }

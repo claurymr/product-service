@@ -49,8 +49,7 @@ public class UpdateProductCommandHandler
                 new ProductUpdatedEvent
                 {
                     Id = ProductId,
-                    OldPrice = OldPrice,
-                    NewPrice = newPrice
+                    ProductName = product.Name
                 }, cancellationToken);
         return ProductId;
     }

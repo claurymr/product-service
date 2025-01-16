@@ -14,7 +14,19 @@ public class GetProductByIdEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/products/{id}");
-        AllowAnonymous(); //For now
+
+        Options(x =>
+        {
+            x.RequireAuthorization("AdminOrUser");
+            x.WithDisplayName("Get Product by Id");
+            x.Produces<Ok<ProductResponse>>(StatusCodes.Status200OK);
+            x.Produces<JsonHttpResult<OperationFailureResponse>>(StatusCodes.Status500InternalServerError);
+            x.Produces<NotFound<OperationFailureResponse>>(StatusCodes.Status404NotFound);
+            x.Produces<UnauthorizedHttpResult>(StatusCodes.Status401Unauthorized);
+            x.Produces<ForbidHttpResult>(StatusCodes.Status403Forbidden);
+            x.Accepts<GetProductByIdQuery>();
+            x.WithOpenApi();
+        });
     }
 
     public override async Task<Results<Ok<ProductResponse>, JsonHttpResult<OperationFailureResponse>, NotFound<OperationFailureResponse>>>

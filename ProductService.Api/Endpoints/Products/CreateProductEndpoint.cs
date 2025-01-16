@@ -14,7 +14,18 @@ public class CreateProductEndpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/products");
-        AllowAnonymous(); //For now
+        
+        Options(x =>
+        {
+            x.RequireAuthorization("Admin");
+            x.WithDisplayName("Create Product");
+            x.Produces<Created<Guid>>(StatusCodes.Status201Created);
+            x.Produces<BadRequest<ValidationFailureResponse>>(StatusCodes.Status400BadRequest);
+            x.Produces<UnauthorizedHttpResult>(StatusCodes.Status401Unauthorized);
+            x.Produces<ForbidHttpResult>(StatusCodes.Status403Forbidden);
+            x.Accepts<CreateProductCommand>();
+            x.WithOpenApi();
+        });
     }
 
     public override async Task<Results<Created<Guid>, BadRequest<ValidationFailureResponse>>>
