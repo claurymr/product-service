@@ -10,18 +10,20 @@ namespace ProductService.Infrastructure.Handlers.Products.GetProducts;
 public class GetProductByIdQueryHandler(IProductRepository productRepository, IExchangeRateApiService exchangeRateApiService)
     : IRequestHandler<GetProductByIdQuery, ResultWithWarning<ProductResponse, HttpClientCommunicationFailed, RecordNotFound>>
 {
+    private readonly IProductRepository _productRepository = productRepository;
+    private readonly IExchangeRateApiService _exchangeRateApiService = exchangeRateApiService;
+
     public async Task<ResultWithWarning<ProductResponse, HttpClientCommunicationFailed, RecordNotFound>> 
         Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
     {
-        // get currency if present, from external api using httpclient
-        var product = await productRepository.GetProductByIdAsync(request.Id);
+        var product = await _productRepository.GetProductByIdAsync(request.Id);
         if(product is null)
         {
             return new RecordNotFound([$"Product with Id {request.Id} not found."]);
         }
         if (request.Currency is not null)
         {
-            var exchangeRateResult = await exchangeRateApiService.GetExchangeRateAsync(request.Currency);
+            var exchangeRateResult = await _exchangeRateApiService.GetExchangeRateAsync(request.Currency);
             if (exchangeRateResult.IsError)
             {
                 return exchangeRateResult.Match(_ => default!, failed => failed);

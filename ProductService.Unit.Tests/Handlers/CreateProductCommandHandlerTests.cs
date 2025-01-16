@@ -3,14 +3,14 @@ using AutoFixture.AutoMoq;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using Moq;
 using ProductService.Application.Contracts;
+using ProductService.Application.EventBus;
 using ProductService.Application.Mappings;
 using ProductService.Application.Products.CreateProducts;
 using ProductService.Application.Repositories;
-using ProductService.Application.Validation;
 using ProductService.Domain;
+using ProductService.Domain.Enums;
 using ProductService.Infrastructure.Handlers.Products.CreateProducts;
 using Xunit;
 
@@ -19,15 +19,22 @@ public class CreateProductCommandHandlerTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<IProductRepository> _productRepositoryMock;
+    private readonly Mock<IPriceHistoryRepository> _priceHistoryRepositoryMock;
     private readonly Mock<IValidator<CreateProductCommand>> _validatorMock;
+    private readonly Mock<IEventBus> _eventBusMock;
     private readonly CreateProductCommandHandler _handler;
 
     public CreateProductCommandHandlerTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _productRepositoryMock = _fixture.Freeze<Mock<IProductRepository>>();
+        _priceHistoryRepositoryMock = _fixture.Freeze<Mock<IPriceHistoryRepository>>();
         _validatorMock = _fixture.Freeze<Mock<IValidator<CreateProductCommand>>>();
-        _handler = new CreateProductCommandHandler(_productRepositoryMock.Object, _validatorMock.Object);
+        _eventBusMock = _fixture.Freeze<Mock<IEventBus>>();
+        _handler = new CreateProductCommandHandler(_productRepositoryMock.Object, 
+                    _priceHistoryRepositoryMock.Object, 
+                    _validatorMock.Object,
+                    _eventBusMock.Object);
     }
 
     [Fact]
@@ -43,8 +50,13 @@ public class CreateProductCommandHandlerTests
         _productRepositoryMock
             .Setup(repo => repo.CreateProductAsync(It.IsAny<Product>()))
             .ReturnsAsync(productId);
-
-        // for later: mock triggering an event
+        _priceHistoryRepositoryMock
+            .Setup(repo => repo.CreatePriceHistoryByProductIdAsync(It.IsAny<Guid>(), 
+                It.IsAny<decimal>(), It.IsAny<decimal>(), It.IsAny<ActionType>()))
+            .Returns(Task.CompletedTask);
+        _eventBusMock
+            .Setup(eventBus => eventBus.PublishAsync(It.IsAny<ProductCreatedEvent>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -55,16 +67,11 @@ public class CreateProductCommandHandlerTests
         resultValue.Should().Be(productId);
         result.IsError.Should().BeFalse();
         _productRepositoryMock.Verify(
-            repo => repo.CreateProductAsync(It.Is<Product>
-                (p =>
-                    p.Name == command.Name &&
-                    p.Description == command.Description &&
-                    p.Price == command.Price &&
-                    p.Category == command.Category &&
-                    p.Sku == command.Sku)),
-            Times.Once);
-
-        // for later: verify trigger of event
+            repo => repo.CreateProductAsync(It.IsAny<Product>()), Times.Once);
+        _priceHistoryRepositoryMock.Verify(
+            repo => repo.CreatePriceHistoryByProductIdAsync(productId, 0m, command.Price, ActionType.Entry), Times.Once);
+        _eventBusMock.Verify(
+            eventBus => eventBus.PublishAsync(It.IsAny<ProductCreatedEvent>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

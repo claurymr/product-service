@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using ProductService.Application.Contracts;
 using ProductService.Application.Mappings;
 using ProductService.Application.ProductPriceHistories.GetPriceHistories;
-using ProductService.Application.Validation;
 
 namespace ProductService.Api.Endpoints.PriceHistories;
 public class GetPriceHistoryByProductIdEndpoint(IMediator mediator)
@@ -14,8 +13,18 @@ public class GetPriceHistoryByProductIdEndpoint(IMediator mediator)
 
     public override void Configure()
     {
-        Get("/pricehistory/{productId}");
-        AllowAnonymous(); //For now
+        Get("/pricehistories/{productId}");
+
+        Options(x =>
+        {
+            x.RequireAuthorization("AdminOrUser");
+            x.WithDisplayName("Get Price Histories by Product Id");
+            x.Produces<Ok<IEnumerable<PriceHistoryResponse>>>(StatusCodes.Status200OK);
+            x.Produces<ForbidHttpResult>(StatusCodes.Status403Forbidden);
+            x.Produces<UnauthorizedHttpResult>(StatusCodes.Status401Unauthorized);
+            x.Accepts<GetPriceHistoryByProductIdQuery>();
+            x.WithOpenApi();
+        });
     }
 
     public override async Task<Results<Ok<IEnumerable<PriceHistoryResponse>>, JsonHttpResult<OperationFailureResponse>>> ExecuteAsync(GetPriceHistoryByProductIdQuery req, CancellationToken ct)

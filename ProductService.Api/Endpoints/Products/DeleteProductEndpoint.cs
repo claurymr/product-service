@@ -13,7 +13,18 @@ public class DeleteProductEndpoint(IMediator mediator) : Endpoint<DeleteProductC
     public override void Configure()
     {
         Delete("/products/{id}");
-        AllowAnonymous(); //For now
+
+        Options(x =>
+        {
+            x.RequireAuthorization("Admin");
+            x.WithDisplayName("Delete Product");
+            x.Produces<NoContent>(StatusCodes.Status204NoContent);
+            x.Produces<NotFound<OperationFailureResponse>>(StatusCodes.Status404NotFound);
+            x.Produces<UnauthorizedHttpResult>(StatusCodes.Status401Unauthorized);
+            x.Produces<ForbidHttpResult>(StatusCodes.Status403Forbidden);
+            x.Accepts<DeleteProductCommand>();
+            x.WithOpenApi();
+        });
     }
 
     public override async Task<Results<NoContent, NotFound<OperationFailureResponse>>> ExecuteAsync(DeleteProductCommand req, CancellationToken ct)

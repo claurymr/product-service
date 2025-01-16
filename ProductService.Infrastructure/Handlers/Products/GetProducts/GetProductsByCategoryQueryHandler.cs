@@ -10,13 +10,14 @@ namespace ProductService.Infrastructure.Handlers.Products.GetProducts;
 public class GetProductsByCategoryQueryHandler(IProductRepository productRepository, IExchangeRateApiService exchangeRateApiService)
     : IRequestHandler<GetProductsByCategoryQuery, Result<IEnumerable<ProductResponse>, HttpClientCommunicationFailed>>
 {
+    private readonly IProductRepository _productRepository = productRepository;
+    private readonly IExchangeRateApiService _exchangeRateApiService = exchangeRateApiService;
     public async Task<Result<IEnumerable<ProductResponse>, HttpClientCommunicationFailed>> Handle(GetProductsByCategoryQuery request, CancellationToken cancellationToken)
     {
-        // get currency if present, from external api using httpclient
-        var products = await productRepository.GetProductsByCategoryAsync(request.Category);
+        var products = await _productRepository.GetProductsByCategoryAsync(request.Category);
         if (request.Currency is not null)
         {
-            var exchangeRateResult = await exchangeRateApiService.GetExchangeRateAsync(request.Currency);
+            var exchangeRateResult = await _exchangeRateApiService.GetExchangeRateAsync(request.Currency);
             if (exchangeRateResult.IsError)
             {
                 return exchangeRateResult.Match(_ => default!, error => error);

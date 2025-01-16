@@ -8,17 +8,15 @@ namespace ProductService.Infrastructure.Handlers.Products.DeleteProducts;
 public class DeleteProductCommandHandler(IProductRepository productRepository)
     : IRequestHandler<DeleteProductCommand, Result<Guid, RecordNotFound>>
 {
-    // Declare repository private field
-    // Call main ctor and initialize repository
+    private readonly IProductRepository _productRepository = productRepository;
+
     public async Task<Result<Guid, RecordNotFound>> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
     {
-        // delete product from db
-        var deleted = await productRepository.DeleteProductAsync(request.Id);
+        var deleted = await _productRepository.DeleteProductAsync(request.Id);
         if (deleted == Guid.Empty)
         {
             return new RecordNotFound([$"Product with Id {request.Id} not found."]);
         }
-        // trigger event
         return deleted;
     }
 }
