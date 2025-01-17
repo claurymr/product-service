@@ -1,42 +1,34 @@
 services:
   productservice.api:
-    image: productservice
+    image: productservice.api:latest
     build:
       context: .
       dockerfile: ProductService.Api/Dockerfile
     ports:
       - "${PRODUCTSERVICE_PORT}:${PRODUCTSERVICE_PORT}"
+      - "8081:8081"
+    env_file:
+      - .env
     environment:
-      - ASPNETCORE_ENVIRONMENT=DEVELOPMENT
-      - ASPNETCORE_URLS=HTTP://+:${PRODUCTSERVICE_PORT}
-      - AUTH__USERNAME=${AUTH__USERNAME}
-      - AUTH__PASSWORD=${AUTH__PASSWORD}
-      - AUTH__ROLE=${AUTH__ROLE}
-      - AUTH__ISSUER=${AUTH__ISSUER}${STOREAPI_PORT}
-      - AUTH__AUDIENCE=${AUTH__AUDIENCE}
-      - AUTH__SECRET=${AUTH__SECRET}
+      - ASPNETCORE_ENVIRONMENT=Development
     volumes:
       - productservice-data:/app/Data
-    depends_on:
-      - rabbitmq
     networks:
       - shared-network
+    depends_on:
+      - store-mq
 
-  rabbitmq:
+  store-mq:
     image: rabbitmq:3-management
     container_name: ${RABBITMQ__QUEUENAME}
     hostname: ${RABBITMQ__HOSTNAME}
     ports:
       - "${RABBITMQ__PORT}:${RABBITMQ__PORT}"
       - "15672:15672"
+    env_file:
+      - .env
     volumes:
       - rabbitmq-data:/app/Data
-    ENVIRONMENT:
-      - RABBITMQ__USERNAME=${RABBITMQ__USERNAME}
-      - RABBITMQ__PASSWORD=${RABBITMQ__PASSWORD}
-      - RABBITMQ__HOSTNAME=${RABBITMQ__HOSTNAME}
-      - RABBITMQ__QUEUENAME=${RABBITMQ__QUEUENAME}
-      - RABBITMQ__PORT=${RABBITMQ__PORT}
     networks:
       - shared-network
 
