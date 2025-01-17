@@ -26,7 +26,7 @@ services:
       - "${RABBITMQ__PORT}:${RABBITMQ__PORT}"
       - "15672:15672"
     env_file:
-      - .env
+      - ../.env
     volumes:
       - rabbitmq-data:/app/Data
     networks:
