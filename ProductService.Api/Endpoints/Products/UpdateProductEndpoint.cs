@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using ProductService.Application.Contracts;
 using ProductService.Application.Mappings;
 using ProductService.Application.Products.UpdateProducts;
-using ProductService.Application.Validation;
 
 namespace ProductService.Api.Endpoints.Products;
 public class UpdateProductEndpoint(IMediator mediator) 
@@ -14,11 +13,12 @@ public class UpdateProductEndpoint(IMediator mediator)
 
     public override void Configure()
     {
+        Verbs(Http.PUT);
         Put("/products/{id}");
 
         Options(x =>
         {
-            x.RequireAuthorization("Admin");
+            x.RequireAuthorization("AdminOnly");
             x.WithDisplayName("Update Product");
             x.Produces<NoContent>(StatusCodes.Status204NoContent);
             x.Produces<BadRequest<ValidationFailureResponse>>(StatusCodes.Status400BadRequest);
@@ -33,7 +33,9 @@ public class UpdateProductEndpoint(IMediator mediator)
     public override async Task<Results<NoContent, BadRequest<ValidationFailureResponse>, NotFound<OperationFailureResponse>>> 
         ExecuteAsync(UpdateProductCommand req, CancellationToken ct)
     {
-        var result = await _mediator.Send(req, ct);
+        var newReq = req with { Id = Route<Guid>("id") };
+
+        var result = await _mediator.Send(newReq, ct);
         var response = result
             .Match<IResult>(
             noContent => TypedResults.NoContent(),

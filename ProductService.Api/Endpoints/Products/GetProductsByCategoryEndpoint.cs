@@ -13,7 +13,8 @@ public class GetProductsByCategoryEndpoint(IMediator mediator)
 
     public override void Configure()
     {
-        Get("/products");
+        Verbs(Http.GET);
+        Get("/products/categories/{category}");
 
         Options(x =>
         {
@@ -31,7 +32,9 @@ public class GetProductsByCategoryEndpoint(IMediator mediator)
     public override async Task<Results<Ok<IEnumerable<ProductResponse>>, JsonHttpResult<OperationFailureResponse>>>
         ExecuteAsync(GetProductsByCategoryQuery req, CancellationToken ct)
     {
-        var result = await _mediator.Send(req, ct);
+        var newReq = req with { Category = Route<string>("category")! };
+
+        var result = await _mediator.Send(newReq, ct);
         var response = result.Match<IResult>(
                         productsResponse => TypedResults.Ok(productsResponse),
                         failed => TypedResults.Json(failed.MapToResponse(), statusCode: StatusCodes.Status500InternalServerError));

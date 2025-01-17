@@ -13,6 +13,7 @@ public class GetPriceHistoryByProductIdEndpoint(IMediator mediator)
 
     public override void Configure()
     {
+        Verbs(Http.GET);
         Get("/pricehistories/{productId}");
 
         Options(x =>
@@ -27,9 +28,12 @@ public class GetPriceHistoryByProductIdEndpoint(IMediator mediator)
         });
     }
 
-    public override async Task<Results<Ok<IEnumerable<PriceHistoryResponse>>, JsonHttpResult<OperationFailureResponse>>> ExecuteAsync(GetPriceHistoryByProductIdQuery req, CancellationToken ct)
+    public override async Task<Results<Ok<IEnumerable<PriceHistoryResponse>>, JsonHttpResult<OperationFailureResponse>>>
+        ExecuteAsync(GetPriceHistoryByProductIdQuery req, CancellationToken ct)
     {
-        var result = await _mediator.Send(req, ct);
+        var newReq = req with { ProductId = Route<Guid>("productId") };
+
+        var result = await _mediator.Send(newReq, ct);
         var response = result.Match<IResult>(
                         productsResponse => TypedResults.Ok(productsResponse),
                         failed =>

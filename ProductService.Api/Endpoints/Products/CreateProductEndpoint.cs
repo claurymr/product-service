@@ -13,11 +13,12 @@ public class CreateProductEndpoint(IMediator mediator)
 
     public override void Configure()
     {
+        Verbs(Http.POST);
         Post("/products");
         
         Options(x =>
         {
-            x.RequireAuthorization("Admin");
+            x.RequireAuthorization("AdminOnly");
             x.WithDisplayName("Create Product");
             x.Produces<Created<Guid>>(StatusCodes.Status201Created);
             x.Produces<BadRequest<ValidationFailureResponse>>(StatusCodes.Status400BadRequest);
