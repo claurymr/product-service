@@ -4,7 +4,6 @@ using FastEndpoints;
 using FluentAssertions;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using Moq;
 using ProductService.Api.Endpoints.Products;
 using ProductService.Application.Contracts;
@@ -17,13 +16,13 @@ public class GetProductByIdEndpointTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<IMediator> _mediatorMock;
-    private readonly GetProductByIdEndpoint _endpoint;
+    private GetProductByIdEndpoint? _endpoint;
 
     public GetProductByIdEndpointTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _mediatorMock = _fixture.Freeze<Mock<IMediator>>();
-        _endpoint = new GetProductByIdEndpoint(_mediatorMock.Object);
+        // _endpoint = new GetProductByIdEndpoint(_mediatorMock.Object);
     }
 
     [Fact]
@@ -41,11 +40,12 @@ public class GetProductByIdEndpointTests
                         .With(p => p.Id, productId)
                         .With(p => p.Currency, default(string))
                         .Create();
-
+        _endpoint = Factory.Create<GetProductByIdEndpoint>(
+                c => c.Request.RouteValues.Add("id", productId.ToString()),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<GetProductByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(productResponse);
-
         // Act
         var result = await _endpoint.ExecuteAsync(request, CancellationToken.None);
 
@@ -73,7 +73,9 @@ public class GetProductByIdEndpointTests
                         .With(p => p.Id, productId)
                         .With(p => p.Currency, currency)
                         .Create();
-
+        _endpoint = Factory.Create<GetProductByIdEndpoint>(
+                c => c.Request.RouteValues.Add("id", productId.ToString()),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<GetProductByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(productResponse);
@@ -98,7 +100,9 @@ public class GetProductByIdEndpointTests
                         .Build<GetProductByIdQuery>()
                         .With(p => p.Id, productId)
                         .Create();
-
+        _endpoint = Factory.Create<GetProductByIdEndpoint>(
+                c => c.Request.RouteValues.Add("id", productId.ToString()),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<GetProductByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new RecordNotFound([$"Product with Id {productId} not found."]));
@@ -125,6 +129,9 @@ public class GetProductByIdEndpointTests
                         .With(p => p.Id, productId)
                         .Create();
         var expectedFailure = new HttpClientCommunicationFailed("Failed to communicate with external API.");
+        _endpoint = Factory.Create<GetProductByIdEndpoint>(
+                c => c.Request.RouteValues.Add("id", productId.ToString()),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<GetProductByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedFailure);

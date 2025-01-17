@@ -1,10 +1,8 @@
-using System.Text.Json;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using FastEndpoints;
 using FluentAssertions;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
 using ProductService.Api.Endpoints.Products;
@@ -18,13 +16,12 @@ public class GetProductsByCategoryEndpointTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<IMediator> _mediatorMock;
-    private readonly GetProductsByCategoryEndpoint _endpoint;
+    private GetProductsByCategoryEndpoint? _endpoint;
 
     public GetProductsByCategoryEndpointTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _mediatorMock = _fixture.Freeze<Mock<IMediator>>();
-        _endpoint = new GetProductsByCategoryEndpoint(_mediatorMock.Object);
     }
 
     [Fact]
@@ -43,7 +40,9 @@ public class GetProductsByCategoryEndpointTests
                         .With(q => q.Category, category)
                         .With(q => q.Currency, default(string))
                         .Create();
-
+        _endpoint = Factory.Create<GetProductsByCategoryEndpoint>(
+                c => c.Request.RouteValues.Add("category", category),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<GetProductsByCategoryQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(products);
@@ -80,7 +79,9 @@ public class GetProductsByCategoryEndpointTests
                         .With(q => q.Category, category)
                         .With(q => q.Currency, currency)
                         .Create();
-
+        _endpoint = Factory.Create<GetProductsByCategoryEndpoint>(
+                c => c.Request.RouteValues.Add("category", category),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<GetProductsByCategoryQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(products);
@@ -106,7 +107,9 @@ public class GetProductsByCategoryEndpointTests
                         .With(q => q.Category, category)
                         .Without(p => p.Currency)
                         .Create();
-
+        _endpoint = Factory.Create<GetProductsByCategoryEndpoint>(
+                c => c.Request.RouteValues.Add("category", category),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<ProductResponse>());
@@ -132,7 +135,9 @@ public class GetProductsByCategoryEndpointTests
                         .With(q => q.Category, category)
                         .Without(p => p.Currency)
                         .Create();
-
+        _endpoint = Factory.Create<GetProductsByCategoryEndpoint>(
+                c => c.Request.RouteValues.Add("category", category),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new HttpClientCommunicationFailed("Failed to communicate with external api."));
