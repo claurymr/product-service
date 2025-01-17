@@ -13,6 +13,7 @@ public class GetProductByIdEndpoint(IMediator mediator)
 
     public override void Configure()
     {
+        Verbs(Http.GET);
         Get("/products/{id}");
 
         Options(x =>
@@ -32,7 +33,9 @@ public class GetProductByIdEndpoint(IMediator mediator)
     public override async Task<Results<Ok<ProductResponse>, JsonHttpResult<OperationFailureResponse>, NotFound<OperationFailureResponse>>>
         ExecuteAsync(GetProductByIdQuery req, CancellationToken ct)
     {
-        var result = await _mediator.Send(req, ct);
+        var newReq = req with { Id = Route<Guid>("id") };
+
+        var result = await _mediator.Send(newReq, ct);
         var response = result.Match<IResult>(
                         productResponse => TypedResults.Ok(productResponse),
                         failed => TypedResults.Json(

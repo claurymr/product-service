@@ -1,7 +1,10 @@
 using FastEndpoints;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ProductService.Api.Extensions;
 using ProductService.Api.Middlewares;
+using ProductService.Application.Validation.Validators;
+using ProductService.Infrastructure;
 using ProductService.Infrastructure.Data;
 using ProductService.Infrastructure.Extensions;
 
@@ -16,11 +19,12 @@ builder.Services.AddAuth(builder.Configuration);
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminOnly", policy => policy.RequireRole("admin"))
     .AddPolicy("AdminOrUser", policy => policy.RequireRole("admin", "user"));
+builder.Services.AddValidatorsFromAssemblyContaining<CreateProductCommandValidator>();
 builder.Services.AddMediatR(config =>
-config.RegisterServicesFromAssembly(typeof(Program).Assembly));
+    config.RegisterServicesFromAssembly(typeof(DesignTimeContextFactory).Assembly));
 builder.Services.AddRabbitMQ(builder.Configuration);
-builder.Services.AddExchangeRateApi(builder.Configuration);
 builder.Services.AddProductServiceServices();
+builder.Services.AddExchangeRateApi(builder.Configuration);
 builder.Services.AddFastEndpoints();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

@@ -49,6 +49,7 @@ public class ProductRepository(ProductServiceDbContext dbContext) : IProductRepo
         existingProduct.Name = product.Name;
         existingProduct.Category = product.Category;
         existingProduct.Price = product.Price;
+        existingProduct.Sku = product.Sku;
         await dbContext.SaveChangesAsync();
 
         return (existingProduct.Id, oldPrice);

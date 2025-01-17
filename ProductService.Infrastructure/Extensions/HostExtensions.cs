@@ -16,11 +16,14 @@ public static class HostExtensions
         {
             // Apply pending migrations
             dbContext.Database.Migrate();
+
+            // Ensure database creation
+            dbContext.Database.EnsureCreated();
         }
         catch (Exception ex)
         {
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<ProductServiceDbContext>>();
-            logger.LogError(ex, "An error occurred while migrating or seeding the database.");
+            logger.LogError(ex, "An error occurred while migrating.");
         }
 
         return host;

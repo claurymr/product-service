@@ -13,6 +13,7 @@ public class GetProductsEndpoint(IMediator mediator)
 
     public override void Configure()
     {
+        Verbs(Http.GET);
         Get("/products");
 
         Options(x =>

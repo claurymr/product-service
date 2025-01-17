@@ -22,31 +22,38 @@ internal static class ServicesExtensions
 
     public static IServiceCollection AddExchangeRateApi(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<ExchangeRateApiSettings>(configuration.GetSection("ExchangeRateApi"));
-        services.AddSingleton(sp =>
-            sp.GetRequiredService<IOptions<ExchangeRateApiSettings>>().Value);
-        services.AddHttpClient<ExchangeRateApiService>((provider, client) =>
+        services.AddHttpClient<IExchangeRateApiService, ExchangeRateApiService>((provider, client) =>
         {
-            var settings = provider.GetRequiredService<IOptions<ExchangeRateApiSettings>>().Value;
-            client.BaseAddress = new Uri($"{settings.BaseUrl}/{settings.ApiKey}/");
+            var baseUrl = configuration["ExchangeRateApi:BaseUrl"];
+            var logger = provider.GetRequiredService<ILogger<ExchangeRateApiSettings>>();
+            logger.LogInformation("Setting up ExchangeRateApiService with {BaseAddress}", baseUrl);
+
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                throw new InvalidOperationException("ExchangeRateApi BaseUrl is not configured.");
+            }
+
+            client.BaseAddress = new Uri($"{baseUrl}/");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
         });
 
-        services.AddTransient<IExchangeRateApiService, ExchangeRateApiService>();
         return services;
     }
 
     public static IServiceCollection AddRabbitMQ(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<RabbitMQSettings>(configuration.GetSection("RabbitMQ"));
-        services.AddSingleton(sp =>
-            sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value);
         services.AddMassTransit(busConfigurator =>
         {
             busConfigurator.SetKebabCaseEndpointNameFormatter();
             busConfigurator.UsingRabbitMq((context, cfg) =>
             {
                 var rabbitMQSettings = context.GetRequiredService<IOptions<RabbitMQSettings>>().Value;
-                cfg.Host(new Uri($"amqp://{rabbitMQSettings.HostName}:{rabbitMQSettings.Port}"), h =>
+                var logger = context.GetRequiredService<ILogger<RabbitMQSettings>>();
+                var uri = $"rabbitmq://{rabbitMQSettings.HostName}/";
+                logger
+                    .LogInformation("Connecting to RabbitMQ at {rabbitMQHostName}:{rabbitMQPort}",
+                        rabbitMQSettings.HostName, rabbitMQSettings.Port);
+                cfg.Host(uri, h =>
                 {
                     h.Username(rabbitMQSettings.UserName);
                     h.Password(rabbitMQSettings.Password);
@@ -77,7 +84,7 @@ internal static class ServicesExtensions
                     IssuerSigningKey = new SymmetricSecurityKey(secret)
                 };
                 options.Authority = configuration["Auth:Issuer"];
-                options.RequireHttpsMetadata = true;
+                options.RequireHttpsMetadata = false;
             });
 
         return services;
@@ -88,6 +95,12 @@ internal static class ServicesExtensions
         services.Configure<AuthSettings>(configuration.GetSection("Auth"));
         services.AddSingleton(sp =>
             sp.GetRequiredService<IOptions<AuthSettings>>().Value);
+        services.Configure<ExchangeRateApiSettings>(configuration.GetSection("ExchangeRateApi"));
+        services.AddTransient(sp =>
+            sp.GetRequiredService<IOptions<ExchangeRateApiSettings>>().Value);
+        services.Configure<RabbitMQSettings>(configuration.GetSection("RabbitMQ"));
+        services.AddSingleton(sp =>
+            sp.GetRequiredService<IOptions<RabbitMQSettings>>().Value);
         return services;
     }
 }

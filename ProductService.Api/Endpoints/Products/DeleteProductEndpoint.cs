@@ -6,17 +6,19 @@ using ProductService.Application.Mappings;
 using ProductService.Application.Products.DeleteProducts;
 
 namespace ProductService.Api.Endpoints.Products;
-public class DeleteProductEndpoint(IMediator mediator) : Endpoint<DeleteProductCommand, Results<NoContent, NotFound<OperationFailureResponse>>>
+public class DeleteProductEndpoint(IMediator mediator)
+    : Endpoint<DeleteProductCommand, Results<NoContent, NotFound<OperationFailureResponse>>>
 {
     private readonly IMediator _mediator = mediator;
 
     public override void Configure()
     {
+        Verbs(Http.DELETE);
         Delete("/products/{id}");
 
         Options(x =>
         {
-            x.RequireAuthorization("Admin");
+            x.RequireAuthorization("AdminOnly");
             x.WithDisplayName("Delete Product");
             x.Produces<NoContent>(StatusCodes.Status204NoContent);
             x.Produces<NotFound<OperationFailureResponse>>(StatusCodes.Status404NotFound);
@@ -27,9 +29,12 @@ public class DeleteProductEndpoint(IMediator mediator) : Endpoint<DeleteProductC
         });
     }
 
-    public override async Task<Results<NoContent, NotFound<OperationFailureResponse>>> ExecuteAsync(DeleteProductCommand req, CancellationToken ct)
+    public override async Task<Results<NoContent, NotFound<OperationFailureResponse>>>
+        ExecuteAsync(DeleteProductCommand req, CancellationToken ct)
     {
-        var result = await _mediator.Send(req, ct);
+        var newReq = req with { Id = Route<Guid>("id") };
+
+        var result = await _mediator.Send(newReq, ct);
         var response = result.Match<IResult>(
                         guid => TypedResults.NoContent(),
                         notFound => TypedResults.NotFound(notFound.MapToResponse()));
