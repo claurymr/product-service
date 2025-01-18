@@ -1,12 +1,12 @@
 services:
-  productservice.api:
-    image: productservice.api:latest
+  productservice:
+    image: productservice
     build:
       context: .
       dockerfile: ProductService.Api/Dockerfile
     ports:
       - "${PRODUCTSERVICE_PORT}:${PRODUCTSERVICE_PORT}"
-      - "8081:8081"
+      - "${PRODUCTSERVICE_PORTALT}:${PRODUCTSERVICE_PORTALT}"
     env_file:
       - ../.env
     environment:
@@ -24,17 +24,17 @@ services:
     hostname: ${RABBITMQ__HOSTNAME}
     ports:
       - "${RABBITMQ__PORT}:${RABBITMQ__PORT}"
-      - "15672:15672"
+      - "${RABBITMQ__PORTALT}:${RABBITMQ__PORTALT}"
     env_file:
       - ../.env
     volumes:
-      - rabbitmq-data:/app/Data
+      - store-mq-data:/app/Data
     networks:
       - shared-network
 
 volumes:
   productservice-data:
-  rabbitmq-data:
+  store-mq-data:
 
 networks:
   shared-network:
