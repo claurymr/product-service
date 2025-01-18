@@ -1,5 +1,6 @@
 using AutoFixture;
 using AutoFixture.AutoMoq;
+using FastEndpoints;
 using FluentAssertions;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -15,13 +16,12 @@ public class DeleteProductEndpointTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<IMediator> _mediatorMock;
-    private readonly DeleteProductEndpoint _endpoint;
+    private DeleteProductEndpoint? _endpoint;
 
     public DeleteProductEndpointTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _mediatorMock = _fixture.Freeze<Mock<IMediator>>();
-        _endpoint = new DeleteProductEndpoint(_mediatorMock.Object);
     }
 
     [Fact]
@@ -33,7 +33,9 @@ public class DeleteProductEndpointTests
                         .Build<DeleteProductCommand>()
                         .With(p => p.Id, productId)
                         .Create();
-
+        _endpoint = Factory.Create<DeleteProductEndpoint>(
+                c => c.Request.RouteValues.Add("id", productId.ToString()),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<DeleteProductCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(productId);
@@ -57,7 +59,9 @@ public class DeleteProductEndpointTests
                         .Build<DeleteProductCommand>()
                         .With(p => p.Id, productId)
                         .Create();
-
+        _endpoint = Factory.Create<DeleteProductEndpoint>(
+                c => c.Request.RouteValues.Add("id", productId.ToString()),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<DeleteProductCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new RecordNotFound([$"Product with Id {request.Id} not found."]));

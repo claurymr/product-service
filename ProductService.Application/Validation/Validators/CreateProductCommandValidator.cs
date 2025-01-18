@@ -2,8 +2,15 @@ using FluentValidation;
 using ProductService.Application.Products.CreateProducts;
 
 namespace ProductService.Application.Validation.Validators;
+/// <summary>
+/// Validator for the CreateProductCommand.
+/// </summary>
 public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CreateProductCommandValidator"/> class.
+    /// Sets up validation rules for the CreateProductCommand properties.
+    /// </summary>
     public CreateProductCommandValidator()
     {
         RuleFor(x => x.Name)

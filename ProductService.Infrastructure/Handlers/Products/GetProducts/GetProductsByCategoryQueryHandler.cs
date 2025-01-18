@@ -7,6 +7,15 @@ using ProductService.Application.Validation;
 using ProductService.Application.Services;
 
 namespace ProductService.Infrastructure.Handlers.Products.GetProducts;
+/// <summary>
+/// Handles the query to get products by category.
+/// </summary>
+/// <param name="productRepository">The product repository to fetch products from.</param>
+/// <param name="exchangeRateApiService">The exchange rate API service to get exchange rates.</param>
+/// <returns>
+/// A handler for the GetProductsByCategoryQuery that returns a result containing a collection of ProductResponse 
+/// or an HttpClientCommunicationFailed error.
+/// </returns>
 public class GetProductsByCategoryQueryHandler(IProductRepository productRepository, IExchangeRateApiService exchangeRateApiService)
     : IRequestHandler<GetProductsByCategoryQuery, Result<IEnumerable<ProductResponse>, HttpClientCommunicationFailed>>
 {

@@ -1,5 +1,6 @@
 using AutoFixture;
 using AutoFixture.AutoMoq;
+using FastEndpoints;
 using FluentAssertions;
 using FluentValidation.Results;
 using MediatR;
@@ -16,13 +17,12 @@ public class UpdateProductEndpointTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<IMediator> _mediatorMock;
-    private readonly UpdateProductEndpoint _endpoint;
+    private UpdateProductEndpoint? _endpoint;
 
     public UpdateProductEndpointTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _mediatorMock = _fixture.Freeze<Mock<IMediator>>();
-        _endpoint = new UpdateProductEndpoint(_mediatorMock.Object);
     }
 
     [Fact]
@@ -34,7 +34,9 @@ public class UpdateProductEndpointTests
                         .Build<UpdateProductCommand>()
                         .With(p => p.Id, productId)
                         .Create();
-
+        _endpoint = Factory.Create<UpdateProductEndpoint>(
+                c => c.Request.RouteValues.Add("id", productId.ToString()),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<UpdateProductCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(productId);
@@ -56,7 +58,9 @@ public class UpdateProductEndpointTests
                         .Build<UpdateProductCommand>()
                         .With(p => p.Id, productId)
                         .Create();
-
+        _endpoint = Factory.Create<UpdateProductEndpoint>(
+                c => c.Request.RouteValues.Add("id", productId.ToString()),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<UpdateProductCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new RecordNotFound([$"Product with Id {productId} not found."]));
@@ -73,12 +77,16 @@ public class UpdateProductEndpointTests
     public async Task UpdateProduct_ShouldReturnBadRequest_WhenRequestIsInvalid()
     {
         // Arrange
+        var productId = Guid.NewGuid();
         var request = _fixture
                         .Build<UpdateProductCommand>()
+                        .With(p => p.Id, productId)
                         .Without(p => p.Name)
                         .Create();
         var validationFailed = new ValidationFailed(new ValidationFailure(nameof(UpdateProductCommand.Name), "Name is required"));
-
+        _endpoint = Factory.Create<UpdateProductEndpoint>(
+                c => c.Request.RouteValues.Add("id", productId.ToString()),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<UpdateProductCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(validationFailed);

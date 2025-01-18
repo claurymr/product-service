@@ -2,8 +2,15 @@ using FluentValidation;
 using ProductService.Application.Products.UpdateProducts;
 
 namespace ProductService.Application.Validation.Validators;
+
+/// <summary>
+/// Validator for the <see cref="UpdateProductCommand"/> class.
+/// </summary>
 public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UpdateProductCommandValidator"/> class.
+    /// </summary>
     public UpdateProductCommandValidator()
     {
         RuleFor(x => x.Id)

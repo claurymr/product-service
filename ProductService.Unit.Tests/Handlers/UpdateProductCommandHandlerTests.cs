@@ -12,6 +12,7 @@ using ProductService.Application.Repositories;
 using ProductService.Domain;
 using ProductService.Domain.Enums;
 using ProductService.Infrastructure.Handlers.Products.UpdateProducts;
+using Shared.Contracts.Events;
 using Xunit;
 
 namespace ProductService.Unit.Tests.Handlers;

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using FastEndpoints;
@@ -18,13 +17,12 @@ public class GetPriceHistoryByProductIdEndpointTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<IMediator> _mediatorMock;
-    private readonly GetPriceHistoryByProductIdEndpoint _endpoint;
+    private GetPriceHistoryByProductIdEndpoint? _endpoint;
 
     public GetPriceHistoryByProductIdEndpointTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _mediatorMock = _fixture.Freeze<Mock<IMediator>>();
-        _endpoint = new GetPriceHistoryByProductIdEndpoint(_mediatorMock.Object);
     }
 
     [Fact]
@@ -43,7 +41,9 @@ public class GetPriceHistoryByProductIdEndpointTests
                         .With(p => p.ProductId, productId)
                         .With(p => p.Currency, default(string))
                         .Create();
-
+        _endpoint = Factory.Create<GetPriceHistoryByProductIdEndpoint>(
+                c => c.Request.RouteValues.Add("productId", productId.ToString()),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<GetPriceHistoryByProductIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(priceHistories);
@@ -81,7 +81,9 @@ public class GetPriceHistoryByProductIdEndpointTests
                         .With(p => p.ProductId, productId)
                         .With(p => p.Currency, currency)
                         .Create();
-
+        _endpoint = Factory.Create<GetPriceHistoryByProductIdEndpoint>(
+                c => c.Request.RouteValues.Add("productId", productId.ToString()),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<GetPriceHistoryByProductIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(priceHistories);
@@ -109,7 +111,9 @@ public class GetPriceHistoryByProductIdEndpointTests
                         .With(p => p.ProductId, productId)
                         .With(p => p.Currency, default(string))
                         .Create();
-
+        _endpoint = Factory.Create<GetPriceHistoryByProductIdEndpoint>(
+                c => c.Request.RouteValues.Add("productId", productId.ToString()),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<GetPriceHistoryByProductIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<PriceHistoryResponse>());
@@ -137,7 +141,9 @@ public class GetPriceHistoryByProductIdEndpointTests
                         .With(p => p.ProductId, productId)
                         .With(p => p.Currency, default(string))
                         .Create();
-
+        _endpoint = Factory.Create<GetPriceHistoryByProductIdEndpoint>(
+                c => c.Request.RouteValues.Add("productId", productId.ToString()),
+                _mediatorMock.Object);
         _mediatorMock
             .Setup(mediator => mediator.Send(It.IsAny<GetPriceHistoryByProductIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new HttpClientCommunicationFailed("Failed to communicate with external API."));

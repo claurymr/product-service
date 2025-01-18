@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace ProductService.Api.Middlewares;
 public class ErrorHandlerMiddleware(RequestDelegate next, ILogger<ErrorHandlerMiddleware> logger)
 {
@@ -10,6 +12,11 @@ public class ErrorHandlerMiddleware(RequestDelegate next, ILogger<ErrorHandlerMi
         {
             await _next(context);
         }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "A database update error occurred.");
+            await HandleExceptionAsync(context, ex);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unhandled exception occurred.");
@@ -17,16 +24,28 @@ public class ErrorHandlerMiddleware(RequestDelegate next, ILogger<ErrorHandlerMi
         }
     }
 
-    private static Task HandleExceptionAsync(HttpContext context)
+    private static async Task HandleExceptionAsync(HttpContext context, Exception? ex = null)
     {
-        context.Response.ContentType = "application/json";
         context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
 
-        var response = new
+        var message = new
         {
-            Message = "An unexpected error occurred. Please try again later."
+            Message = ex?.Message ?? "An error occurred while processing your request."
         };
 
-        return context.Response.WriteAsJsonAsync(response);
+        if (ex is DbUpdateException && ex.InnerException?.Message.Contains("UNIQUE") is true)
+        {
+            var innerExceptionMessage = ex.InnerException?.Message
+                                        .Split([':', '.', '\''], StringSplitOptions.RemoveEmptyEntries)
+                                        .LastOrDefault();
+            message = new
+            {
+                Message = @$"An error occurred while updating entity. Entity with {innerExceptionMessage} already exists."
+            };
+            context.Response.StatusCode = StatusCodes.Status409Conflict;
+        }
+
+        await context.Response.WriteAsJsonAsync(message);
     }
 }
