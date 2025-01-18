@@ -10,6 +10,16 @@ using ProductService.Application.EventBus;
 using Shared.Contracts.Events;
 
 namespace ProductService.Infrastructure.Handlers.Products.UpdateProducts;
+/// <summary>
+/// Handles the update of a product command.
+/// </summary>
+/// <param name="productRepository">The product repository.</param>
+/// <param name="priceHistoryRepository">The price history repository.</param>
+/// <param name="validator">The validator for the update product command.</param>
+/// <param name="eventBus">The event bus for publishing events.</param>
+/// <returns>
+/// A handler for the update product command.
+/// </returns>
 public class UpdateProductCommandHandler
     (IProductRepository productRepository,
     IPriceHistoryRepository priceHistoryRepository,

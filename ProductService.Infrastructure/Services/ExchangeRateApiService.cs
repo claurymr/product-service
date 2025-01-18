@@ -5,6 +5,13 @@ using ProductService.Application.Services;
 using ProductService.Application.Validation;
 
 namespace ProductService.Infrastructure.Services;
+
+/// <summary>
+/// Service to interact with the exchange rate API.
+/// </summary>
+/// <param name="httpClient">The HTTP client used to make requests to the exchange rate API.</param>
+/// <param name="settings">The settings for the exchange rate API, including the API key and endpoint.</param>
+/// <param name="logger">The logger used to log information and errors.</param>
 public class ExchangeRateApiService
     (HttpClient httpClient,
     ExchangeRateApiSettings settings,
@@ -15,6 +22,8 @@ public class ExchangeRateApiService
     private readonly ExchangeRateApiSettings _settings = settings;
     // add logger
     private readonly ILogger<ExchangeRateApiService> _logger = logger;
+
+    /// <inheritdoc/>
     public async Task<Result<decimal, HttpClientCommunicationFailed>> GetExchangeRateAsync(string targetCurrency)
     {
         _logger.LogInformation("Getting exchange rate {BaseAddress} for {targetCurrency} from {endpoint}",

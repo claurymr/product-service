@@ -7,6 +7,15 @@ using ProductService.Application.Services;
 using ProductService.Application.Validation;
 
 namespace ProductService.Infrastructure.Handlers.Products.GetProducts;
+/// <summary>
+/// Handles the query to get all products.
+/// </summary>
+/// <param name="productRepository">The product repository to retrieve products from.</param>
+/// <param name="exchangeRateApiService">The exchange rate API service to get exchange rates.</param>
+/// <returns>
+/// A handler for the <see cref="GetAllProductsQuery"/> that returns a result containing a collection 
+/// of <see cref="ProductResponse"/> or an <see cref="HttpClientCommunicationFailed"/> error.
+/// </returns>
 public class GetAllProductsQueryHandler(IProductRepository productRepository, IExchangeRateApiService exchangeRateApiService)
     : IRequestHandler<GetAllProductsQuery, Result<IEnumerable<ProductResponse>, HttpClientCommunicationFailed>>
 {

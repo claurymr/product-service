@@ -4,6 +4,10 @@ using ProductService.Domain;
 
 namespace ProductService.Infrastructure.Data.Configurations;
 
+/// <summary>
+/// Configures the entity of type <see cref="Product"/>.
+/// </summary>
+/// <param name="builder">The builder to be used to configure the entity.</param>
 public class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
     public void Configure(EntityTypeBuilder<Product> builder)

@@ -11,6 +11,16 @@ using Shared.Contracts.Events;
 
 namespace ProductService.Infrastructure.Handlers.Products.CreateProducts;
 
+/// <summary>
+/// Handles the creation of a new product.
+/// </summary>
+/// <param name="productRepository">The repository for managing products.</param>
+/// <param name="priceHistoryRepository">The repository for managing price history.</param>
+/// <param name="validator">The validator for the CreateProductCommand.</param>
+/// <param name="eventBus">The event bus for publishing events.</param>
+/// <returns>
+/// A handler for the CreateProductCommand that returns a Result containing either the product ID or validation errors.
+/// </returns>
 public class CreateProductCommandHandler
     (IProductRepository productRepository,
     IPriceHistoryRepository priceHistoryRepository,

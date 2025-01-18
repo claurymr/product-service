@@ -6,6 +6,16 @@ using ProductService.Application.Mappings;
 using ProductService.Application.Products.GetProducts;
 
 namespace ProductService.Api.Endpoints.Products;
+
+/// <summary>
+/// Endpoint for retrieving a product by its ID.
+/// </summary>
+/// <param name="mediator">The mediator instance for handling requests.</param>
+/// <response code="200">Returns the product details if found.</response>
+/// <response code="500">Returns an internal server error if there is a failure.</response>
+/// <response code="404">Returns not found if the product does not exist.</response>
+/// <response code="401">Returns unauthorized if the user is not authenticated.</response>
+/// <response code="403">Returns forbidden if the user does not have the required permissions.</response>
 public class GetProductByIdEndpoint(IMediator mediator)
     : Endpoint<GetProductByIdQuery, Results<Ok<ProductResponse>, JsonHttpResult<OperationFailureResponse>, NotFound<OperationFailureResponse>>>
 {
@@ -30,6 +40,12 @@ public class GetProductByIdEndpoint(IMediator mediator)
         });
     }
 
+    /// <summary>
+    /// Executes the request to get a product by its ID.
+    /// </summary>
+    /// <param name="req">The request containing the product ID.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the result of the operation.</returns>
     public override async Task<Results<Ok<ProductResponse>, JsonHttpResult<OperationFailureResponse>, NotFound<OperationFailureResponse>>>
         ExecuteAsync(GetProductByIdQuery req, CancellationToken ct)
     {

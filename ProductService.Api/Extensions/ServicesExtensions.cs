@@ -13,14 +13,29 @@ using ProductService.Infrastructure.Repositories;
 using ProductService.Infrastructure.Services;
 
 namespace ProductService.Api.Extensions;
+
+/// <summary>
+/// Provides extension methods for adding services to the IServiceCollection.
+/// </summary>
 internal static class ServicesExtensions
 {
+    /// <summary>
+    /// Adds the product service related services to the IServiceCollection.
+    /// </summary>
+    /// <param name="services">The IServiceCollection to add services to.</param>
     public static void AddProductServiceServices(this IServiceCollection services)
     {
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IPriceHistoryRepository, PriceHistoryRepository>();
     }
 
+    /// <summary>
+    /// Adds the ExchangeRateApi service to the IServiceCollection.
+    /// </summary>
+    /// <param name="services">The IServiceCollection to add services to.</param>
+    /// <param name="configuration">The IConfiguration to retrieve settings from.</param>
+    /// <returns>The updated IServiceCollection.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the ExchangeRateApi BaseUrl is not configured.</exception>
     public static IServiceCollection AddExchangeRateApi(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddHttpClient<IExchangeRateApiService, ExchangeRateApiService>((provider, client) =>
@@ -41,6 +56,12 @@ internal static class ServicesExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds RabbitMQ services to the IServiceCollection.
+    /// </summary>
+    /// <param name="services">The IServiceCollection to add services to.</param>
+    /// <param name="configuration">The IConfiguration to retrieve settings from.</param>
+    /// <returns>The updated IServiceCollection.</returns>
     public static IServiceCollection AddRabbitMQ(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddMassTransit(busConfigurator =>
@@ -68,6 +89,12 @@ internal static class ServicesExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds authentication and authorization services to the IServiceCollection.
+    /// </summary>
+    /// <param name="services">The IServiceCollection to add services to.</param>
+    /// <param name="configuration">The IConfiguration to retrieve settings from.</param>
+    /// <returns>The updated IServiceCollection.</returns>
     public static IServiceCollection AddAuth(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -96,6 +123,12 @@ internal static class ServicesExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds configuration settings to the IServiceCollection.
+    /// </summary>
+    /// <param name="services">The IServiceCollection to add services to.</param>
+    /// <param name="configuration">The IConfiguration to retrieve settings from.</param>
+    /// <returns>The updated IServiceCollection.</returns>
     public static IServiceCollection AddConfigSettings(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<AuthSettings>(configuration.GetSection("Auth"));
