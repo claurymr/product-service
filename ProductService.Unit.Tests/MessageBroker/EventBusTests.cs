@@ -3,6 +3,7 @@ using AutoFixture.AutoMoq;
 using MassTransit;
 using Moq;
 using ProductService.Application.Products.CreateProducts;
+using ProductService.Application.Products.DeleteProducts;
 using ProductService.Application.Products.UpdateProducts;
 using ProductService.Infrastructure.MessageBroker;
 using Xunit;
@@ -45,6 +46,25 @@ public class EventBusTests
     {
         // Arrange
         var @event = _fixture.Create<ProductUpdatedEvent>();
+        _publishEndpointMock
+            .Setup(publishEndpoint => publishEndpoint.Publish(@event, new CancellationToken()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _eventBus.PublishAsync(@event);
+
+        // Assert
+        _publishEndpointMock
+            .Verify(
+                publishEndpoint => publishEndpoint.Publish(@event, It.IsAny<CancellationToken>()),
+                Times.Once);
+    }
+
+    [Fact]
+    public async Task PublishAsync_WithProductDeletedEvent_ShouldPublishEvent()
+    {
+        // Arrange
+        var @event = _fixture.Create<ProductDeletedEvent>();
         _publishEndpointMock
             .Setup(publishEndpoint => publishEndpoint.Publish(@event, new CancellationToken()))
             .Returns(Task.CompletedTask);

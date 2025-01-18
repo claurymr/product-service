@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -49,7 +50,7 @@ internal static class ServicesExtensions
             {
                 var rabbitMQSettings = context.GetRequiredService<IOptions<RabbitMQSettings>>().Value;
                 var logger = context.GetRequiredService<ILogger<RabbitMQSettings>>();
-                var uri = $"rabbitmq://{rabbitMQSettings.HostName}/";
+                var uri = $"amqp://{rabbitMQSettings.HostName}/";
                 logger
                     .LogInformation("Connecting to RabbitMQ at {rabbitMQHostName}:{rabbitMQPort}",
                         rabbitMQSettings.HostName, rabbitMQSettings.Port);
@@ -81,11 +82,16 @@ internal static class ServicesExtensions
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = configuration["Auth:Issuer"],
                     ValidAudience = configuration["Auth:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(secret)
+                    IssuerSigningKey = new SymmetricSecurityKey(secret),
+                    RoleClaimType = ClaimTypes.Role
                 };
                 options.Authority = configuration["Auth:Issuer"];
                 options.RequireHttpsMetadata = false;
             });
+
+        services.AddAuthorizationBuilder()
+            .AddPolicy("AdminOnly", policy => policy.RequireRole("admin"))
+            .AddPolicy("AdminOrUser", policy => policy.RequireRole("admin", "user"));
 
         return services;
     }

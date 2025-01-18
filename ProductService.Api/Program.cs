@@ -16,9 +16,6 @@ builder.Services.AddConfigSettings(builder.Configuration);
 builder.Services.AddDbContext<ProductServiceDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("ProductServiceConnection")));
 builder.Services.AddAuth(builder.Configuration);
-builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("AdminOnly", policy => policy.RequireRole("admin"))
-    .AddPolicy("AdminOrUser", policy => policy.RequireRole("admin", "user"));
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductCommandValidator>();
 builder.Services.AddMediatR(config =>
     config.RegisterServicesFromAssembly(typeof(DesignTimeContextFactory).Assembly));
