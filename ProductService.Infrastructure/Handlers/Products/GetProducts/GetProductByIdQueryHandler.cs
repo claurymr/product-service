@@ -7,6 +7,16 @@ using ProductService.Application.Mappings;
 using ProductService.Application.Services;
 
 namespace ProductService.Infrastructure.Handlers.Products.GetProducts;
+
+/// <summary>
+/// Handles the query to get a product by its ID.
+/// </summary>
+/// <param name="productRepository">The repository to access product data.</param>
+/// <param name="exchangeRateApiService">The service to get exchange rate information.</param>
+/// <returns>
+/// A handler for the GetProductByIdQuery that returns a ResultWithWarning containing the ProductResponse, 
+/// HttpClientCommunicationFailed, or RecordNotFound.
+/// </returns>
 public class GetProductByIdQueryHandler(IProductRepository productRepository, IExchangeRateApiService exchangeRateApiService)
     : IRequestHandler<GetProductByIdQuery, ResultWithWarning<ProductResponse, HttpClientCommunicationFailed, RecordNotFound>>
 {

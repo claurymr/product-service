@@ -5,6 +5,10 @@ using ProductService.Domain.Enums;
 
 namespace ProductService.Infrastructure.Data.Configurations;
 
+/// <summary>
+/// Configures the PriceHistory entity type.
+/// </summary>
+/// <param name="builder">The builder to be used to configure the entity type.</param>
 public class PriceHistoryConfiguration : IEntityTypeConfiguration<PriceHistory>
 {
     public void Configure(EntityTypeBuilder<PriceHistory> builder)

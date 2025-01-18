@@ -6,6 +6,17 @@ using ProductService.Application.Mappings;
 using ProductService.Application.ProductPriceHistories.GetPriceHistories;
 
 namespace ProductService.Api.Endpoints.PriceHistories;
+
+/// <summary>
+/// Endpoint to handle the retrieval of price history by product ID.
+/// </summary>
+/// <remarks>
+/// - 200 OK: Returns a list of <see cref="PriceHistoryResponse"/>.
+/// - 403 Forbidden: If the user is not authorized.
+/// - 401 Unauthorized: If the user is not authenticated.
+/// - 500 Internal Server Error: If there is an internal server error.
+/// </remarks>
+/// <param name="mediator">The mediator instance used to send the query.</param>
 public class GetPriceHistoryByProductIdEndpoint(IMediator mediator)
     : Endpoint<GetPriceHistoryByProductIdQuery, Results<Ok<IEnumerable<PriceHistoryResponse>>, JsonHttpResult<OperationFailureResponse>>>
 {
@@ -28,6 +39,13 @@ public class GetPriceHistoryByProductIdEndpoint(IMediator mediator)
         });
     }
 
+    /// <summary>
+    /// Executes the request to get price histories by product ID.
+    /// </summary>
+    /// <param name="req">The request containing the product ID.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the result of the operation.</returns>
+    /// <exception cref="Exception">Thrown when an unexpected result is encountered.</exception>
     public override async Task<Results<Ok<IEnumerable<PriceHistoryResponse>>, JsonHttpResult<OperationFailureResponse>>>
         ExecuteAsync(GetPriceHistoryByProductIdQuery req, CancellationToken ct)
     {

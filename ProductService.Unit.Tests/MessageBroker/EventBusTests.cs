@@ -2,10 +2,8 @@ using AutoFixture;
 using AutoFixture.AutoMoq;
 using MassTransit;
 using Moq;
-using ProductService.Application.Products.CreateProducts;
-using ProductService.Application.Products.DeleteProducts;
-using ProductService.Application.Products.UpdateProducts;
 using ProductService.Infrastructure.MessageBroker;
+using Shared.Contracts.Events;
 using Xunit;
 
 namespace ProductService.Unit.Tests.MessageBroker;

@@ -7,6 +7,14 @@ using ProductService.Application.Services;
 using ProductService.Application.Validation;
 
 namespace ProductService.Infrastructure.Handlers.PriceHistories;
+/// <summary>
+/// Handles the query to get the price history by product ID.
+/// </summary>
+/// <param name="priceHistoryRepository">The repository to access price history data.</param>
+/// <param name="exchangeRateApiService">The service to get exchange rate data.</param>
+/// <returns>
+/// A handler for the query to get price history by product ID.
+/// </returns>
 public class GetPriceHistoryByProductIdQueryHandler(IPriceHistoryRepository priceHistoryRepository, IExchangeRateApiService exchangeRateApiService)
     : IRequestHandler<GetPriceHistoryByProductIdQuery, Result<IEnumerable<PriceHistoryResponse>, HttpClientCommunicationFailed>>
 {
