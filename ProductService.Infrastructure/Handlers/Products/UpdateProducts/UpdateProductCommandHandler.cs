@@ -7,6 +7,7 @@ using ProductService.Application.Validation;
 using ProductService.Application.Mappings;
 using ProductService.Domain.Enums;
 using ProductService.Application.EventBus;
+using Shared.Contracts.Events;
 
 namespace ProductService.Infrastructure.Handlers.Products.UpdateProducts;
 public class UpdateProductCommandHandler

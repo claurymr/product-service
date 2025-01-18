@@ -7,6 +7,7 @@ using ProductService.Application.Products.CreateProducts;
 using ProductService.Application.Repositories;
 using ProductService.Application.Validation;
 using ProductService.Domain.Enums;
+using Shared.Contracts.Events;
 
 namespace ProductService.Infrastructure.Handlers.Products.CreateProducts;
 

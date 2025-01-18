@@ -1,4 +1,4 @@
-namespace ProductService.Application.Products.UpdateProducts;
+namespace Shared.Contracts.Events;
 public class ProductUpdatedEvent
 {
     public Guid Id { get; set; }

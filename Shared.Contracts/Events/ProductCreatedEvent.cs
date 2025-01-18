@@ -1,4 +1,4 @@
-namespace ProductService.Application.Products.CreateProducts;
+namespace Shared.Contracts.Events;
 public record ProductCreatedEvent
 {
     public Guid Id { get; set; }

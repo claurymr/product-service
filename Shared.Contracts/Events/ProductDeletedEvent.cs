@@ -1,4 +1,4 @@
-namespace ProductService.Application.Products.DeleteProducts;
+namespace Shared.Contracts.Events;
 public class ProductDeletedEvent
 {
     public Guid Id { get; set; }

@@ -4,6 +4,7 @@ using ProductService.Application.EventBus;
 using ProductService.Application.Products.DeleteProducts;
 using ProductService.Application.Repositories;
 using ProductService.Application.Validation;
+using Shared.Contracts.Events;
 
 namespace ProductService.Infrastructure.Handlers.Products.DeleteProducts;
 public class DeleteProductCommandHandler(IProductRepository productRepository, IEventBus eventBus)
