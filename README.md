@@ -36,3 +36,12 @@ For the database, I chose SQLite due to its lightweight nature and minimal setup
 
 ### JWT Auth
 To handle authentication and authorization, I implemented a simple JWT Auth by setting up predetermined credentials that don't need to be saved to a database. This decision was taken to simplify the process of authentication and authorization while prioritizing other functionalities, as registration and login were not required for the nature of this project. This approach allows for secure access control without the overhead of managing user credentials in a database.
+
+## Forfeited Requirements
+
+### Caching for GET Endpoints
+
+I did not implement caching for the GET endpoints for the following reasons:
+- **Low Priority:** The priority for implementing caching fell low compared to other critical features that needed to be developed and integrated into the system. Other functionalities and architectural decisions were deemed more pressing and required immediate attention to ensure the system's core capabilities were robust and reliable.
+
+If caching had been implemented, Redis would have been the chosen solution. Redis is well-suited for distributed systems due to its high performance and scalability. However, at the time of this project, the system was not large enough to justify the additional complexity of integrating Redis. The focus was on delivering essential features and ensuring the system's stability before considering advanced optimizations like caching.
