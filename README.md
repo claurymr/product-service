@@ -1,6 +1,6 @@
 # Product Service
 
-> [!WARNING]
+> [!IMPORTANT]
 > This solution is part of the Inventory Management System and should be run together with the rest of the services. The whole system is composed of the following components:
 > - [API Gateway](https://github.com/claurymr/store-api) <--- Complete setup instructions can be found here.
 > - [Inventory Auth Service](https://github.com/claurymr/inventory-auth-service)
